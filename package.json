@@ -1,0 +1,12 @@
+{
+  "name": "sistema-chamados-suporte",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema web para gerenciamento de chamados de suporte tecnico.",
+  "scripts": {
+    "install:backend": "npm --prefix backend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "test": "npm --prefix backend test",
+    "coverage": "npm --prefix backend run coverage"
+  }
+}
