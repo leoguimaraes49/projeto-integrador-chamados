@@ -1,0 +1,76 @@
+@baseUrl = http://localhost:3001
+@token = cole-o-token-aqui
+@categoryId = 11111111-1111-4111-8111-111111111111
+@ticketId = cole-o-id-do-chamado-aqui
+
+### Health check
+GET {{baseUrl}}/health
+
+### PB-01 - Cadastro de usuario
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Usuario Demo",
+  "email": "usuario.demo@example.com",
+  "password": "123456",
+  "role": "user"
+}
+
+### PB-02 - Login com JWT
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario.demo@example.com",
+  "password": "123456"
+}
+
+### Listar categorias
+GET {{baseUrl}}/api/categories
+Authorization: Bearer {{token}}
+
+### PB-04 - Abertura de chamado
+POST {{baseUrl}}/api/tickets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Computador nao liga",
+  "description": "O computador do laboratorio 2 nao liga apos pressionar o botao.",
+  "categoryId": "{{categoryId}}",
+  "priority": "high"
+}
+
+### PB-05 - Listagem dos meus chamados
+GET {{baseUrl}}/api/tickets
+Authorization: Bearer {{token}}
+
+### PB-06 - Detalhe de chamado com historico
+GET {{baseUrl}}/api/tickets/{{ticketId}}
+Authorization: Bearer {{token}}
+
+### Cadastro de tecnico para demo
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Tecnico Demo",
+  "email": "tecnico.demo@example.com",
+  "password": "123456",
+  "role": "technician"
+}
+
+### PB-08 - Tecnico assume chamado
+POST {{baseUrl}}/api/tickets/{{ticketId}}/assign
+Authorization: Bearer {{token}}
+
+### PB-10 - Tecnico altera status
+PATCH {{baseUrl}}/api/tickets/{{ticketId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "resolved"
+}
+
