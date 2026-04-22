@@ -59,7 +59,7 @@ Artefatos da Sprint 1:
 - [Sprint 1 Retrospectiva](docs/sprints/sprint-1-retrospectiva.md)
 - [Requests para demonstrar endpoints da Sprint 1](docs/api/sprint-1-requests.http)
 
-GitHub Projects: link do board da Sprint 1 a ser inserido apos a criacao do Project no GitHub.
+GitHub Projects: https://github.com/users/leoguimaraes49/projects/3
 
 ## User stories demonstráveis na Sprint 1
 
@@ -98,3 +98,4 @@ Rodar testes do backend:
 ```bash
 npm test
 ```
+
