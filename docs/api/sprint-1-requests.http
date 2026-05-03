@@ -81,3 +81,7 @@ Content-Type: application/json
 # 4. Copie o token retornado no login.
 # 5. Cole o token na variavel @token no topo deste arquivo.
 
+### Observacao sobre cadastro
+# O cadastro valida nome, e-mail e senha.
+# E-mails duplicados devem retornar erro.
+# A senha nao deve aparecer nas respostas da API.
