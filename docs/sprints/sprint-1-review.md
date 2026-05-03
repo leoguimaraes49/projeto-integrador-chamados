@@ -35,3 +35,7 @@ Preencher apos a apresentacao da Sprint 1.
 ## Ajustes para a Sprint 2
 
 Preencher apos feedback do professor e da turma.
+
+## Objetivo explicado para a review
+
+A Sprint 1 teve como objetivo entregar a fundacao tecnica do produto, com foco em backend, banco de dados, autenticacao e endpoints demonstraveis. A proposta foi evitar escopo excessivo e garantir uma base organizada para as proximas sprints.
