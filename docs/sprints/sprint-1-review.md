@@ -56,3 +56,13 @@ A Sprint 1 teve como objetivo entregar a fundacao tecnica do produto, com foco e
 - Rodar os testes do backend.
 - Mostrar o arquivo de requests da API.
 - Demonstrar pelo menos 3 endpoints funcionando.
+
+## Planejamento inicial da Sprint 2
+
+Com base no que foi entregue na Sprint 1, a Sprint 2 deve priorizar:
+
+- criar interface para login e cadastro;
+- criar interface para abertura e listagem de chamados;
+- configurar GitHub Actions;
+- integrar SonarCloud;
+- iniciar containerizacao conforme o calendario da Sprint 2.
