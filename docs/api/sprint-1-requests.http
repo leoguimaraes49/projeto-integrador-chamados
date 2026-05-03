@@ -74,3 +74,10 @@ Content-Type: application/json
   "status": "resolved"
 }
 
+### Como usar este arquivo
+# 1. Inicie o backend localmente.
+# 2. Execute primeiro o cadastro.
+# 3. Execute o login.
+# 4. Copie o token retornado no login.
+# 5. Cole o token na variavel @token no topo deste arquivo.
+
