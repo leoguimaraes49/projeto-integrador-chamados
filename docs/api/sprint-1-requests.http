@@ -74,3 +74,36 @@ Content-Type: application/json
   "status": "resolved"
 }
 
+### Como usar este arquivo
+# 1. Inicie o backend localmente.
+# 2. Execute primeiro o cadastro.
+# 3. Execute o login.
+# 4. Copie o token retornado no login.
+# 5. Cole o token na variavel @token no topo deste arquivo.
+
+### Observacao sobre cadastro
+# O cadastro valida nome, e-mail e senha.
+# E-mails duplicados devem retornar erro.
+# A senha nao deve aparecer nas respostas da API.
+
+### Observacao sobre login
+# O login retorna um JWT.
+# Copie apenas o valor do campo token.
+# Use esse valor em Authorization: Bearer {{token}}.
+
+### Observacao sobre categorias
+# A migration cria categorias iniciais.
+# Para a demo, pode usar:
+# Hardware: 11111111-1111-4111-8111-111111111111
+# Software: 22222222-2222-4222-8222-222222222222
+# Rede: 33333333-3333-4333-8333-333333333333
+# Acesso e contas: 44444444-4444-4444-8444-444444444444
+
+### Ordem recomendada para a apresentacao
+# 1. Health check.
+# 2. Cadastro de usuario.
+# 3. Login e copia do token.
+# 4. Listagem de categorias.
+# 5. Abertura de chamado.
+# 6. Listagem dos chamados do usuario.
+# 7. Detalhe do chamado com historico.
