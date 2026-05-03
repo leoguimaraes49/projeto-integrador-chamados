@@ -24,3 +24,17 @@
 - Cada membro deve assumir pelo menos uma issue da Sprint 1.
 - Antes da review, rodar testes e demonstrar os endpoints.
 - Registrar problemas encontrados no README ou em issues.
+
+## Complemento da retrospectiva
+
+### Aprendizados
+
+- Dividir as tarefas em PRs pequenos facilita a revisao.
+- Ter endpoints testaveis ajuda a demonstrar valor mesmo sem interface pronta.
+- O README precisa seguir exatamente os itens pedidos no calendario.
+
+### Melhorias decididas para a proxima sprint
+
+- Criar as telas principais a partir da API ja existente.
+- Configurar CI e qualidade conforme a Sprint 2.
+- Manter o board atualizado durante a semana, nao apenas no final.
