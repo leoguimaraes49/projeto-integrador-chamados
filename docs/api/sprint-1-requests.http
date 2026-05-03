@@ -85,3 +85,8 @@ Content-Type: application/json
 # O cadastro valida nome, e-mail e senha.
 # E-mails duplicados devem retornar erro.
 # A senha nao deve aparecer nas respostas da API.
+
+### Observacao sobre login
+# O login retorna um JWT.
+# Copie apenas o valor do campo token.
+# Use esse valor em Authorization: Bearer {{token}}.
