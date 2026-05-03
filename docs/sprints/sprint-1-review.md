@@ -47,3 +47,12 @@ A Sprint 1 teve como objetivo entregar a fundacao tecnica do produto, com foco e
 - PB-04 Abertura de chamado via API.
 - PB-05 Listagem dos meus chamados via API.
 - PB-06 Detalhe de chamado com historico via API.
+
+## Checklist de evidencias da demo
+
+- Abrir o repositorio no GitHub.
+- Mostrar o README com objetivo, integrantes, responsabilidades, stack, execucao e link do board.
+- Mostrar o GitHub Projects da Sprint 1.
+- Rodar os testes do backend.
+- Mostrar o arquivo de requests da API.
+- Demonstrar pelo menos 3 endpoints funcionando.
