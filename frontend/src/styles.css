@@ -62,6 +62,14 @@ button {
   font-size: 18px;
 }
 
+.profile-label {
+  color: #0f766e;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
 .eyebrow {
   color: #55616d;
   font-size: 12px;
@@ -245,6 +253,34 @@ textarea {
   gap: 10px;
 }
 
+.summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.summary-grid article {
+  background: #f6f8fa;
+  border: 1px solid #dce4ea;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.summary-grid span {
+  color: #607080;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.summary-grid strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  margin-top: 8px;
+}
+
 .ticket-row {
   align-items: center;
   background: #fbfcfd;
@@ -333,6 +369,18 @@ textarea {
   margin: 0;
 }
 
+.technician-actions {
+  border-top: 1px solid #dce4ea;
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+}
+
+.message-form {
+  display: grid;
+  gap: 10px;
+}
+
 .timeline {
   display: grid;
   gap: 8px;
@@ -362,6 +410,7 @@ textarea {
 
   .dashboard,
   .form-row,
+  .summary-grid,
   .ticket-detail dl {
     grid-template-columns: 1fr;
   }

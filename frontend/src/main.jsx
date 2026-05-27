@@ -10,6 +10,14 @@ const INITIAL_FORM = {
   categoryId: '',
   priority: 'medium'
 };
+const STATUS_OPTIONS = [
+  ['open', 'Aberto'],
+  ['in_progress', 'Em atendimento'],
+  ['waiting_user', 'Aguardando usuario'],
+  ['resolved', 'Resolvido'],
+  ['closed', 'Fechado'],
+  ['canceled', 'Cancelado']
+];
 
 function App() {
   const [mode, setMode] = useStateFromStorage('authMode', 'login');
@@ -20,6 +28,7 @@ function App() {
     password: '123456'
   });
   const [ticketForm, setTicketForm] = React.useState(INITIAL_FORM);
+  const [message, setMessage] = React.useState('');
   const [categories, setCategories] = React.useState([]);
   const [tickets, setTickets] = React.useState([]);
   const [selectedTicket, setSelectedTicket] = React.useState(null);
@@ -27,6 +36,7 @@ function App() {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const token = auth?.token;
+  const isTechnician = ['technician', 'admin'].includes(auth?.user?.role);
 
   React.useEffect(() => {
     if (!token) {
@@ -136,6 +146,69 @@ function App() {
     }
   }
 
+  async function assignSelectedTicket() {
+    if (!selectedTicket) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await request(`/api/tickets/${selectedTicket.id}/assign`, {
+        method: 'POST'
+      });
+      await loadWorkspaceData();
+      await showTicket(result.ticket.id);
+      setStatus({ type: 'success', message: 'Chamado assumido pelo tecnico.' });
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function updateSelectedStatus(status) {
+    if (!selectedTicket) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await request(`/api/tickets/${selectedTicket.id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      await loadWorkspaceData();
+      await showTicket(result.ticket.id);
+      setStatus({ type: 'success', message: 'Status do chamado atualizado.' });
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function sendMessage(event) {
+    event.preventDefault();
+    if (!selectedTicket) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await request(`/api/tickets/${selectedTicket.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ message })
+      });
+      setMessage('');
+      await showTicket(selectedTicket.id);
+      setStatus({ type: 'success', message: 'Resposta registrada no historico.' });
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function showTicket(ticketId) {
     setIsLoading(true);
     try {
@@ -196,6 +269,7 @@ function App() {
                 <div>
                   <p className="eyebrow">Usuario autenticado</p>
                   <h2>{auth.user.name}</h2>
+                  <span className="profile-label">{isTechnician ? 'Tecnico' : 'Solicitante'}</span>
                 </div>
                 <button className="icon-action" type="button" onClick={loadWorkspaceData}>
                   <RefreshCw size={18} aria-hidden="true" />
@@ -203,13 +277,17 @@ function App() {
                 </button>
               </div>
 
-              <TicketForm
-                categories={categories}
-                form={ticketForm}
-                setForm={setTicketForm}
-                onSubmit={createTicket}
-                isLoading={isLoading}
-              />
+              {isTechnician ? (
+                <TechnicianSummary tickets={tickets} />
+              ) : (
+                <TicketForm
+                  categories={categories}
+                  form={ticketForm}
+                  setForm={setTicketForm}
+                  onSubmit={createTicket}
+                  isLoading={isLoading}
+                />
+              )}
             </section>
 
             <section className="panel">
@@ -219,7 +297,7 @@ function App() {
                   <h2>{tickets.length} registrados</h2>
                 </div>
               </div>
-              <TicketList tickets={tickets} onSelect={showTicket} />
+              <TicketList tickets={tickets} onSelect={showTicket} isTechnician={isTechnician} />
             </section>
 
             <section className="panel detail-panel">
@@ -229,7 +307,16 @@ function App() {
                   <h2>{selectedTicket ? selectedTicket.title : 'Nenhum chamado selecionado'}</h2>
                 </div>
               </div>
-              <TicketDetail ticket={selectedTicket} />
+              <TicketDetail
+                ticket={selectedTicket}
+                isTechnician={isTechnician}
+                isLoading={isLoading}
+                message={message}
+                setMessage={setMessage}
+                onAssign={assignSelectedTicket}
+                onStatusChange={updateSelectedStatus}
+                onSendMessage={sendMessage}
+              />
             </section>
           </div>
         )}
@@ -382,7 +469,32 @@ function TicketForm({ categories, form, setForm, onSubmit, isLoading }) {
   );
 }
 
-function TicketList({ tickets, onSelect }) {
+function TechnicianSummary({ tickets }) {
+  const openCount = tickets.filter((ticket) => ticket.status === 'open').length;
+  const inProgressCount = tickets.filter((ticket) => ticket.status === 'in_progress').length;
+  const highPriorityCount = tickets.filter((ticket) =>
+    ['high', 'critical'].includes(ticket.priority)
+  ).length;
+
+  return (
+    <div className="summary-grid">
+      <article>
+        <span>Abertos</span>
+        <strong>{openCount}</strong>
+      </article>
+      <article>
+        <span>Em atendimento</span>
+        <strong>{inProgressCount}</strong>
+      </article>
+      <article>
+        <span>Alta prioridade</span>
+        <strong>{highPriorityCount}</strong>
+      </article>
+    </div>
+  );
+}
+
+function TicketList({ tickets, onSelect, isTechnician }) {
   if (!tickets.length) {
     return <p className="empty-state">Nenhum chamado encontrado.</p>;
   }
@@ -393,7 +505,10 @@ function TicketList({ tickets, onSelect }) {
         <button key={ticket.id} className="ticket-row" type="button" onClick={() => onSelect(ticket.id)}>
           <span>
             <strong>{ticket.title}</strong>
-            <small>{ticket.category.name} - {ticket.priority}</small>
+            <small>
+              {ticket.category.name} - {ticket.priority}
+              {isTechnician ? ` - ${ticket.requester.name}` : ''}
+            </small>
           </span>
           <span className={`badge ${ticket.status}`}>{ticket.status}</span>
         </button>
@@ -402,7 +517,16 @@ function TicketList({ tickets, onSelect }) {
   );
 }
 
-function TicketDetail({ ticket }) {
+function TicketDetail({
+  ticket,
+  isTechnician,
+  isLoading,
+  message,
+  setMessage,
+  onAssign,
+  onStatusChange,
+  onSendMessage
+}) {
   if (!ticket) {
     return <p className="empty-state">Selecione um chamado para ver o historico.</p>;
   }
@@ -424,6 +548,44 @@ function TicketDetail({ ticket }) {
         </div>
       </dl>
       <p>{ticket.description}</p>
+      {isTechnician && (
+        <div className="technician-actions">
+          {!ticket.technician && (
+            <button className="primary-action" type="button" onClick={onAssign} disabled={isLoading}>
+              Assumir chamado
+            </button>
+          )}
+          <label>
+            Status
+            <select
+              value={ticket.status}
+              onChange={(event) => onStatusChange(event.target.value)}
+              disabled={isLoading}
+            >
+              {STATUS_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <form className="message-form" onSubmit={onSendMessage}>
+            <label>
+              Resposta ao solicitante
+              <textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                rows={3}
+                required
+              />
+            </label>
+            <button className="primary-action" type="submit" disabled={isLoading}>
+              <Send size={18} aria-hidden="true" />
+              Enviar resposta
+            </button>
+          </form>
+        </div>
+      )}
       <div className="timeline">
         {ticket.events?.map((event) => (
           <article key={event.id}>

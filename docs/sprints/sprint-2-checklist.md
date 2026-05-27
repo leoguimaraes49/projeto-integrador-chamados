@@ -24,6 +24,7 @@
 | Prototipo de interface validavel | Feito | `frontend/` com React + Vite |
 | Fluxo de login/cadastro | Feito | Tela inicial do prototipo |
 | Fluxo de abertura/listagem/detalhe de chamados | Feito | Dashboard do prototipo |
+| Area do tecnico | Feito | Lista chamados, assume atendimento, responde e altera status |
 | Validacao com usuario/grupo | Pendente | Registrar feedback antes da review |
 
 ## Qualidade
