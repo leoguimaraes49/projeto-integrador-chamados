@@ -13,10 +13,10 @@ const INITIAL_FORM = {
 
 function App() {
   const [mode, setMode] = useStateFromStorage('authMode', 'login');
-  const [auth, setAuth] = useStateFromStorage('auth', null);
+  const [auth, setAuth] = React.useState(null);
   const [authForm, setAuthForm] = React.useState({
-    name: 'Usuario Sprint 2',
-    email: 'usuario.sprint2@example.com',
+    name: '',
+    email: '',
     password: '123456'
   });
   const [ticketForm, setTicketForm] = React.useState(INITIAL_FORM);
@@ -60,18 +60,29 @@ function App() {
     setStatus({ type: 'idle', message: '' });
 
     try {
-      const path = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const payload =
-        mode === 'login'
-          ? { email: authForm.email, password: authForm.password }
-          : { ...authForm };
+      const isLogin = mode === 'login';
+      const path = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const payload = isLogin
+        ? { email: authForm.email, password: authForm.password }
+        : { ...authForm };
       const result = await request(path, {
         method: 'POST',
         body: JSON.stringify(payload)
       });
 
-      setAuth(result);
-      setStatus({ type: 'success', message: 'Usuario autenticado com sucesso.' });
+      if (isLogin) {
+        setAuth(result);
+        setStatus({ type: 'success', message: 'Usuario autenticado com sucesso.' });
+        return;
+      }
+
+      setMode('login');
+      setAuthForm({
+        name: result.user.name,
+        email: result.user.email,
+        password: ''
+      });
+      setStatus({ type: 'success', message: 'Cadastro realizado. Faca login para continuar.' });
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     } finally {
@@ -149,7 +160,6 @@ function App() {
       <section className="workspace">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Sprint 2</p>
             <h1>Sistema de Chamados</h1>
           </div>
           {auth?.user && (
@@ -174,6 +184,10 @@ function App() {
             setForm={setAuthForm}
             onSubmit={handleAuth}
             isLoading={isLoading}
+            fillCredentials={(credentials) => {
+              setMode('login');
+              setAuthForm({ name: '', ...credentials });
+            }}
           />
         ) : (
           <div className="dashboard">
@@ -224,7 +238,7 @@ function App() {
   );
 }
 
-function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading }) {
+function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCredentials }) {
   return (
     <section className="auth-panel">
       <div className="segmented-control" role="tablist" aria-label="Modo de acesso">
@@ -245,6 +259,33 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading }) {
           Cadastro
         </button>
       </div>
+
+      {mode === 'login' && (
+        <div className="quick-access" aria-label="Acesso por perfil">
+          <button
+            type="button"
+            onClick={() =>
+              fillCredentials({
+                email: 'usuario.demo@example.com',
+                password: '123456'
+              })
+            }
+          >
+            Usuario
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              fillCredentials({
+                email: 'tecnico.demo@example.com',
+                password: '123456'
+              })
+            }
+          >
+            Tecnico
+          </button>
+        </div>
+      )}
 
       <form className="form-grid" onSubmit={onSubmit}>
         {mode === 'register' && (

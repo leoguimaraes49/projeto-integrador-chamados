@@ -19,10 +19,11 @@ Demonstrar a consolidacao da base tecnica criada na Sprint 1, com foco em segura
 3. Rodar coverage do backend.
 4. Mostrar a migration da Sprint 2.
 5. Subir backend e frontend.
-6. Demonstrar login/cadastro no prototipo.
-7. Demonstrar abertura, listagem e detalhe de chamado.
-8. Mostrar o workflow de CI no repositório.
-9. Mostrar o status do SonarCloud, se o token ja estiver configurado.
+6. Demonstrar cadastro sem login automatico.
+7. Demonstrar login como usuario e login como tecnico usando as credenciais do seed.
+8. Demonstrar abertura, listagem e detalhe de chamado.
+9. Mostrar o workflow de CI no repositorio.
+10. Mostrar o status do SonarCloud, se o token ja estiver configurado.
 
 ## Pontos em andamento
 

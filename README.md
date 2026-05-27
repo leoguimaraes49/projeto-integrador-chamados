@@ -115,6 +115,7 @@ Rodar backend:
 
 ```bash
 npm --prefix backend run migrate
+npm run seed:demo
 npm --prefix backend run dev
 ```
 
@@ -122,6 +123,13 @@ Rodar frontend:
 
 ```bash
 npm run dev:frontend
+```
+
+Credenciais de demonstracao criadas pelo seed:
+
+```text
+Usuario: usuario.demo@example.com / 123456
+Tecnico: tecnico.demo@example.com / 123456
 ```
 
 Rodar testes do backend:

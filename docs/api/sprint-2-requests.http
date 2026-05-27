@@ -9,7 +9,7 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "name": "Usuario Sprint 2",
+  "name": "Usuario Demo",
   "email": "usuario.sprint2@example.com",
   "password": "123456",
   "role": "technician"
