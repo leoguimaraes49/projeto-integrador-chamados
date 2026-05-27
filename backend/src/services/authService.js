@@ -4,8 +4,6 @@ import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/appError.js';
 
-const VALID_ROLES = new Set(['user', 'technician', 'admin']);
-
 export class AuthService {
   constructor(userRepository) {
     this.userRepository = userRepository;
@@ -15,7 +13,7 @@ export class AuthService {
     const name = String(input.name ?? '').trim();
     const email = normalizeEmail(input.email);
     const password = String(input.password ?? '');
-    const role = VALID_ROLES.has(input.role) ? input.role : 'user';
+    const role = 'user';
 
     if (!name) {
       throw new AppError('Nome e obrigatorio.', 400, 'NAME_REQUIRED');
@@ -57,6 +55,8 @@ export class AuthService {
       throw new AppError('Credenciais invalidas.', 401, 'INVALID_CREDENTIALS');
     }
 
+    await this.userRepository.markLastLogin?.(user.id);
+
     return buildAuthResponse(toPublicUser(user));
   }
 }
@@ -97,4 +97,3 @@ function toPublicUser(user) {
     role: user.role
   };
 }
-
