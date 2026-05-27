@@ -1,6 +1,15 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, LogIn, Plus, RefreshCw, Send, UserPlus } from 'lucide-react';
+import {
+  AlertTriangle,
+  ClipboardList,
+  Headphones,
+  LogIn,
+  Plus,
+  RefreshCw,
+  Send,
+  UserPlus
+} from 'lucide-react';
 import './styles.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -229,16 +238,25 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${isTechnician ? 'technician-mode' : 'requester-mode'}`}>
       <section className="workspace">
         <header className="topbar">
-          <div>
-            <h1>Sistema de Chamados</h1>
+          <div className="brand-lockup">
+            <div className="brand-mark" aria-hidden="true">
+              <Headphones size={22} />
+            </div>
+            <div>
+              <p className="eyebrow">Central de suporte tecnico</p>
+              <h1>Sistema de Chamados</h1>
+            </div>
           </div>
           {auth?.user && (
-            <button className="secondary-action" type="button" onClick={logout}>
-              Sair
-            </button>
+            <div className="session-bar">
+              <span>{auth.user.email}</span>
+              <button className="secondary-action" type="button" onClick={logout}>
+                Sair
+              </button>
+            </div>
           )}
         </header>
 
@@ -263,7 +281,7 @@ function App() {
             }}
           />
         ) : (
-          <div className="dashboard">
+          <div className={`dashboard ${isTechnician ? 'technician-dashboard' : ''}`}>
             <section className="panel">
               <div className="panel-heading">
                 <div>
@@ -328,6 +346,16 @@ function App() {
 function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCredentials }) {
   return (
     <section className="auth-panel">
+      <div className="auth-heading">
+        <div className="brand-mark" aria-hidden="true">
+          <ClipboardList size={22} />
+        </div>
+        <div>
+          <p className="eyebrow">Acesso</p>
+          <h2>{mode === 'login' ? 'Entrar no sistema' : 'Criar conta'}</h2>
+        </div>
+      </div>
+
       <div className="segmented-control" role="tablist" aria-label="Modo de acesso">
         <button
           className={mode === 'login' ? 'active' : ''}
@@ -351,6 +379,7 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
         <div className="quick-access" aria-label="Acesso por perfil">
           <button
             type="button"
+            className="quick-access-button"
             onClick={() =>
               fillCredentials({
                 email: 'usuario.demo@example.com',
@@ -362,6 +391,7 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
           </button>
           <button
             type="button"
+            className="quick-access-button"
             onClick={() =>
               fillCredentials({
                 email: 'tecnico.demo@example.com',
@@ -510,7 +540,10 @@ function TicketList({ tickets, onSelect, isTechnician }) {
               {isTechnician ? ` - ${ticket.requester.name}` : ''}
             </small>
           </span>
-          <span className={`badge ${ticket.status}`}>{ticket.status}</span>
+          <span className="ticket-meta">
+            <span className={`badge priority-${ticket.priority}`}>{ticket.priority}</span>
+            <span className={`badge ${ticket.status}`}>{ticket.status}</span>
+          </span>
         </button>
       ))}
     </div>
