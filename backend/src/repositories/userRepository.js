@@ -32,7 +32,7 @@ export class UserRepository {
   async findById(id) {
     const result = await this.pool.query(
       `
-        SELECT id, name, email, role, created_at
+        SELECT id, name, email, role, created_at, last_login_at
         FROM users
         WHERE id = $1
       `,
@@ -41,5 +41,15 @@ export class UserRepository {
 
     return result.rows[0] ?? null;
   }
-}
 
+  async markLastLogin(id) {
+    await this.pool.query(
+      `
+        UPDATE users
+        SET last_login_at = NOW()
+        WHERE id = $1
+      `,
+      [id]
+    );
+  }
+}
