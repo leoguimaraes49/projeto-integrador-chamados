@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:3001
+@token = cole-o-token-aqui
+
+### Health check
+GET {{baseUrl}}/health
+
+### Seguranca - cadastro publico sempre cria usuario comum
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Usuario Sprint 2",
+  "email": "usuario.sprint2@example.com",
+  "password": "123456",
+  "role": "technician"
+}
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario.sprint2@example.com",
+  "password": "123456"
+}
+
+### Endpoint autenticado
+GET {{baseUrl}}/api/categories
+Authorization: Bearer {{token}}

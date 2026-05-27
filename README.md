@@ -24,12 +24,14 @@ O projeto consiste no desenvolvimento de um sistema web para gerenciamento de ch
 
 ## Tecnologias e stack
 
+- Frontend: React com Vite
 - Backend: Node.js com Express
 - Banco de dados: PostgreSQL
 - Autenticação: JWT
 - Testes: Vitest
+- Qualidade/CI: GitHub Actions e SonarCloud
 
-Observação: nesta Sprint 1, a entrega foi limitada ao backend/API testável, conforme permitido pelo calendário. Frontend, mensageria, containerização e automações ficam para sprints posteriores.
+Observação: Docker, Docker Compose, RabbitMQ e deploy ficam fora da Sprint 2 e serão tratados em sprints posteriores.
 
 ## Entrega 1
 
@@ -71,11 +73,33 @@ As funcionalidades abaixo estao implementadas no backend e podem ser testadas pe
 - PB-05 Listagem dos meus chamados.
 - PB-06 Detalhe de chamado com historico.
 
+## Sprint 2
+
+O foco da Sprint 2 é consolidar a base do produto com segurança, migrations versionadas, CI, métricas de qualidade e protótipo de interface.
+
+Artefatos da Sprint 2:
+
+- [Escopo da Sprint 2](docs/sprints/sprint-2-escopo.md)
+- [Checklist da Sprint 2](docs/sprints/sprint-2-checklist.md)
+- [Sprint 2 Review](docs/sprints/sprint-2-review.md)
+- [Sprint 2 Retrospectiva](docs/sprints/sprint-2-retrospectiva.md)
+- [Sprint 3 Planning](docs/sprints/sprint-3-planning.md)
+- [Requests da Sprint 2](docs/api/sprint-2-requests.http)
+
+Itens demonstráveis:
+
+- API com headers de segurança e limite nas rotas de autenticação.
+- Cadastro público sem permissão para criar técnico/admin.
+- Migration `002_ticket_lifecycle_and_audit.sql`.
+- Protótipo React para login/cadastro, abertura, listagem e detalhe de chamados.
+- CI com testes, migrations, cobertura e build do frontend.
+
 ## Estrutura do projeto
 
 ```text
-backend/   API Node.js + Express, migrations, autenticação, chamados e testes
-docs/      Documentação do projeto, requests de teste e materiais da Sprint 1
+backend/    API Node.js + Express, migrations, autenticação, chamados e testes
+frontend/   Protótipo React + Vite
+docs/       Documentação do projeto, requests de teste e materiais das sprints
 ```
 
 ## Como rodar localmente
@@ -84,6 +108,7 @@ Instalar dependências:
 
 ```bash
 npm run install:backend
+npm run install:frontend
 ```
 
 Rodar backend:
@@ -93,9 +118,21 @@ npm --prefix backend run migrate
 npm --prefix backend run dev
 ```
 
+Rodar frontend:
+
+```bash
+npm run dev:frontend
+```
+
 Rodar testes do backend:
 
 ```bash
 npm test
+```
+
+Rodar build do frontend:
+
+```bash
+npm run build:frontend
 ```
 
