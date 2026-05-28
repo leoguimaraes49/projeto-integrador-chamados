@@ -60,6 +60,8 @@ export class TicketRepository {
           t.description,
           t.priority,
           t.status,
+          t.due_at,
+          t.closed_at,
           t.created_at,
           t.updated_at,
           c.id AS category_id,
@@ -90,6 +92,8 @@ export class TicketRepository {
           t.description,
           t.priority,
           t.status,
+          t.due_at,
+          t.closed_at,
           t.created_at,
           t.updated_at,
           c.id AS category_id,
@@ -128,7 +132,13 @@ export class TicketRepository {
     const result = await this.pool.query(
       `
         UPDATE tickets
-        SET status = $2, updated_at = NOW()
+        SET
+          status = $2,
+          closed_at = CASE
+            WHEN $2 IN ('resolved', 'closed') THEN NOW()
+            ELSE NULL
+          END,
+          updated_at = NOW()
         WHERE id = $1
         RETURNING *
       `,
@@ -207,6 +217,8 @@ function mapTicketRow(row) {
     description: row.description,
     priority: row.priority,
     status: row.status,
+    dueAt: row.due_at,
+    closedAt: row.closed_at,
     category: {
       id: row.category_id,
       name: row.category_name
@@ -225,4 +237,3 @@ function mapTicketRow(row) {
     updatedAt: row.updated_at
   };
 }
-

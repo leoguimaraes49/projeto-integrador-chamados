@@ -65,4 +65,4 @@ Com base no que foi entregue na Sprint 1, a Sprint 2 deve priorizar:
 - criar interface para abertura e listagem de chamados;
 - configurar GitHub Actions;
 - integrar SonarCloud;
-- iniciar containerizacao conforme o calendario da Sprint 2.
+- validar prototipo de interface conforme o calendario da Sprint 2.

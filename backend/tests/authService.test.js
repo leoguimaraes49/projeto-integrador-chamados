@@ -38,6 +38,21 @@ describe('AuthService', () => {
     ).rejects.toMatchObject({ statusCode: 409 });
   });
 
+  it('impede cadastro publico com perfil privilegiado', async () => {
+    const repository = new InMemoryUserRepository();
+    const service = new AuthService(repository);
+
+    const result = await service.register({
+      name: 'Tecnico indevido',
+      email: 'tecnico@exemplo.com',
+      password: '123456',
+      role: 'technician'
+    });
+
+    expect(result.user.role).toBe('user');
+    expect(repository.users[0].role).toBe('user');
+  });
+
   it('recusa login com senha incorreta', async () => {
     const repository = new InMemoryUserRepository();
     const service = new AuthService(repository);
@@ -76,5 +91,11 @@ class InMemoryUserRepository {
   async findByEmail(email) {
     return this.users.find((user) => user.email === email) ?? null;
   }
-}
 
+  async markLastLogin(id) {
+    const user = this.users.find((item) => item.id === id);
+    if (user) {
+      user.lastLoginAt = new Date();
+    }
+  }
+}

@@ -1,5 +1,7 @@
 import cors from 'cors';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { env } from './config/env.js';
 import { pool } from './db/pool.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -15,13 +17,30 @@ import { TicketService } from './services/ticketService.js';
 export function createApp(container = buildContainer()) {
   const app = express();
 
+  app.disable('x-powered-by');
+  app.use(helmet());
   app.use(
     cors({
-      origin: env.corsOrigin,
+      origin: env.corsOrigins,
       credentials: true
     })
   );
   app.use(express.json({ limit: '1mb' }));
+  app.use(
+    '/api/auth',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 20,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      message: {
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Muitas tentativas. Tente novamente em alguns minutos.'
+        }
+      }
+    })
+  );
 
   app.get('/health', (_req, res) => {
     res.json({
