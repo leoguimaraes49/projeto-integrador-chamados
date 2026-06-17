@@ -104,6 +104,10 @@ frontend/   Protótipo React + Vite
 docs/       Documentação do projeto, requests de teste e materiais das sprints
 ```
 
+## Arquitetura
+
+- [Diagrama de Arquitetura](docs/arquitetura/diagrama-arquitetura.md)
+
 ## Como rodar localmente
 
 Instalar dependências:
