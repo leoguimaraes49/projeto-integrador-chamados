@@ -30,8 +30,9 @@ O projeto consiste no desenvolvimento de um sistema web para gerenciamento de ch
 - Autenticação: JWT
 - Testes: Vitest
 - Qualidade/CI: GitHub Actions e SonarCloud
+- Containerizacao: Docker e Docker Compose
 
-Observação: Docker, Docker Compose, RabbitMQ e deploy ficam fora da Sprint 2 e serão tratados em sprints posteriores.
+Observacao: RabbitMQ e deploy externo nao fazem parte do MVP atual.
 
 ## Entrega 1
 
@@ -142,5 +143,55 @@ Rodar build do frontend:
 
 ```bash
 npm run build:frontend
+```
+
+## Como rodar com Docker
+
+Pre-requisitos:
+
+- Docker Desktop instalado e em execucao.
+- Portas `3001`, `5173` e `5433` livres.
+
+Subir banco, backend e frontend:
+
+```bash
+npm run docker:up
+```
+
+O Docker Compose executa automaticamente:
+
+- PostgreSQL com banco `chamados`.
+- Migrations do backend.
+- Seed com usuarios de demonstracao.
+- API em `http://localhost:3001`.
+- Frontend em `http://localhost:5173`.
+
+Credenciais de demonstracao:
+
+```text
+Usuario: usuario.demo@example.com / 123456
+Tecnico: tecnico.demo@example.com / 123456
+```
+
+Parar os containers:
+
+```bash
+npm run docker:down
+```
+
+Ver logs:
+
+```bash
+npm run docker:logs
+```
+
+Conexao ao banco pelo computador host:
+
+```text
+Host: localhost
+Porta: 5433
+Banco: chamados
+Usuario: postgres
+Senha: postgres
 ```
 
