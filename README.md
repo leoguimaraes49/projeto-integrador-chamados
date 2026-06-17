@@ -28,11 +28,12 @@ O projeto consiste no desenvolvimento de um sistema web para gerenciamento de ch
 - Backend: Node.js com Express
 - Banco de dados: PostgreSQL
 - Autenticação: JWT
+- Mensageria: RabbitMQ
 - Testes: Vitest
 - Qualidade/CI: GitHub Actions e SonarCloud
 - Containerizacao: Docker e Docker Compose
 
-Observacao: RabbitMQ e deploy externo nao fazem parte do MVP atual.
+Observacao: deploy externo nao faz parte do MVP atual.
 
 ## Entrega 1
 
@@ -150,9 +151,9 @@ npm run build:frontend
 Pre-requisitos:
 
 - Docker Desktop instalado e em execucao.
-- Portas `3001`, `5173` e `5433` livres.
+- Portas `3001`, `5173`, `5433`, `5672` e `15672` livres.
 
-Subir banco, backend e frontend:
+Subir banco, RabbitMQ, backend, worker e frontend:
 
 ```bash
 npm run docker:up
@@ -161,10 +162,13 @@ npm run docker:up
 O Docker Compose executa automaticamente:
 
 - PostgreSQL com banco `chamados`.
+- RabbitMQ para eventos de chamados.
+- Worker de notificacoes consumindo a fila `ticket.notifications`.
 - Migrations do backend.
 - Seed com usuarios de demonstracao.
 - API em `http://localhost:3001`.
 - Frontend em `http://localhost:5173`.
+- Painel RabbitMQ em `http://localhost:15672`.
 
 Credenciais de demonstracao:
 
@@ -194,4 +198,21 @@ Banco: chamados
 Usuario: postgres
 Senha: postgres
 ```
+
+Painel RabbitMQ:
+
+```text
+URL: http://localhost:15672
+Usuario: guest
+Senha: guest
+Exchange: ticket.events
+Fila: ticket.notifications
+```
+
+Demonstracao da mensageria:
+
+1. Suba o ambiente com `npm run docker:up`.
+2. Entre no frontend e crie um chamado.
+3. Veja os logs do worker com `docker compose logs -f worker`.
+4. A cada chamado, resposta ou mudanca de status, o backend publica um evento e o worker registra uma notificacao simulada.
 

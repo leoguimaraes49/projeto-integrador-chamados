@@ -17,6 +17,24 @@ services:
       retries: 5
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: chamados-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - chamados-rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -25,6 +43,9 @@ services:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgres://postgres:postgres@db:5432/chamados
+      AMQP_URL: amqp://guest:guest@rabbitmq:5672
+      RABBITMQ_TICKET_EVENTS_EXCHANGE: ticket.events
+      RABBITMQ_NOTIFICATION_QUEUE: ticket.notifications
       JWT_SECRET: docker-dev-secret-change-me
       JWT_EXPIRES_IN: 8h
       CORS_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
@@ -32,6 +53,8 @@ services:
       - "3001:3001"
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     command: sh -c "npm run migrate && npm run seed:demo && npm start"
     healthcheck:
@@ -43,6 +66,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+    container_name: chamados-worker
+    environment:
+      NODE_ENV: production
+      AMQP_URL: amqp://guest:guest@rabbitmq:5672
+      RABBITMQ_TICKET_EVENTS_EXCHANGE: ticket.events
+      RABBITMQ_NOTIFICATION_QUEUE: ticket.notifications
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: npm run worker:notifications
     restart: unless-stopped
 
   frontend:
@@ -65,3 +103,4 @@ services:
 
 volumes:
   chamados-postgres-data:
+  chamados-rabbitmq-data:

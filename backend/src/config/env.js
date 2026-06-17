@@ -14,7 +14,14 @@ export const env = {
   databaseUrl:
     process.env.DATABASE_URL ??
     'postgres://postgres:postgres@localhost:5432/chamados',
+  amqpUrl: process.env.AMQP_URL ?? '',
   jwtSecret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
-  corsOrigins
+  corsOrigins,
+  rabbitmq: {
+    ticketEventsExchange:
+      process.env.RABBITMQ_TICKET_EVENTS_EXCHANGE ?? 'ticket.events',
+    notificationQueue:
+      process.env.RABBITMQ_NOTIFICATION_QUEUE ?? 'ticket.notifications'
+  }
 };

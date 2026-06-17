@@ -12,9 +12,10 @@ const STATUSES = new Set([
 ]);
 
 export class TicketService {
-  constructor(ticketRepository, categoryRepository) {
+  constructor(ticketRepository, categoryRepository, ticketEventPublisher = null) {
     this.ticketRepository = ticketRepository;
     this.categoryRepository = categoryRepository;
+    this.ticketEventPublisher = ticketEventPublisher;
   }
 
   async createTicket(user, input) {
@@ -53,6 +54,14 @@ export class TicketService {
       type: 'ticket_created',
       message: 'Chamado criado.',
       newStatus: 'open'
+    });
+
+    await this.publishTicketEvent('ticket_created', {
+      ticketId: ticket.id,
+      requesterId: user.id,
+      title: ticket.title,
+      priority: ticket.priority,
+      status: ticket.status
     });
 
     return this.getTicket(user, ticket.id);
@@ -105,6 +114,14 @@ export class TicketService {
       newStatus: 'in_progress'
     });
 
+    await this.publishTicketEvent('ticket_assigned', {
+      ticketId,
+      technicianId: user.id,
+      title: current.title,
+      previousStatus: current.status,
+      status: 'in_progress'
+    });
+
     return updated;
   }
 
@@ -121,13 +138,22 @@ export class TicketService {
       throw new AppError('Mensagem e obrigatoria.', 400, 'MESSAGE_REQUIRED');
     }
 
-    return this.ticketRepository.addEvent({
+    const event = await this.ticketRepository.addEvent({
       id: randomUUID(),
       ticketId,
       authorId: user.id,
       type: 'message_added',
       message: normalizedMessage
     });
+
+    await this.publishTicketEvent('message_added', {
+      ticketId,
+      authorId: user.id,
+      title: ticket.title,
+      message: normalizedMessage
+    });
+
+    return event;
   }
 
   async updateStatus(user, ticketId, status) {
@@ -153,7 +179,27 @@ export class TicketService {
       newStatus: status
     });
 
+    await this.publishTicketEvent('status_changed', {
+      ticketId,
+      authorId: user.id,
+      title: current.title,
+      previousStatus: current.status,
+      status
+    });
+
     return updated;
+  }
+
+  async publishTicketEvent(type, payload) {
+    if (!this.ticketEventPublisher) {
+      return;
+    }
+
+    try {
+      await this.ticketEventPublisher.publish(type, payload);
+    } catch (error) {
+      console.error('Falha ao publicar evento de chamado:', error.message);
+    }
   }
 }
 
