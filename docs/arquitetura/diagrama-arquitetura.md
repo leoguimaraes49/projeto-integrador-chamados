@@ -6,29 +6,27 @@ Este documento registra a arquitetura atual do sistema de gerenciamento de chama
 
 ```mermaid
 flowchart LR
-  usuario["Usuario solicitante"]
-  tecnico["Tecnico de suporte"]
+  usuario["Usuario"]
+  tecnico["Tecnico"]
 
-  subgraph navegador["Navegador"]
-    frontend["Frontend React + Vite"]
+  subgraph app["Aplicacao"]
+    frontend["Frontend React"]
+    api["API Node.js + Express"]
+    worker["Worker de notificacoes"]
   end
 
-  subgraph docker["Ambiente Docker Compose"]
-    nginx["Nginx\nserve build do frontend"]
-    api["Backend Node.js + Express\nAPI REST"]
-    worker["Worker de notificacoes\nNode.js"]
-    db[("PostgreSQL\nbanco chamados")]
-    rabbit[("RabbitMQ\nexchange ticket.events\nfila ticket.notifications")]
+  subgraph infra["Infraestrutura"]
+    db[("PostgreSQL")]
+    rabbit[("RabbitMQ")]
   end
 
   usuario --> frontend
   tecnico --> frontend
-  frontend --> nginx
-  frontend -- "HTTP/JSON" --> api
+  frontend -- "REST/JWT" --> api
   api -- "SQL" --> db
-  api -- "publica eventos" --> rabbit
-  rabbit -- "consome mensagens" --> worker
-  worker -- "logs de notificacao" --> logs["Logs do container"]
+  api -- "eventos" --> rabbit
+  rabbit --> worker
+  worker --> logs["Logs"]
 ```
 
 ## Fluxo principal de chamados
@@ -42,14 +40,13 @@ sequenceDiagram
   participant R as RabbitMQ
   participant W as Worker
 
-  U->>F: Preenche e envia chamado
+  U->>F: Cria chamado
   F->>A: POST /api/tickets com JWT
-  A->>D: Grava ticket e evento ticket_created
-  D-->>A: Retorna dados gravados
-  A->>R: Publica evento ticket_created
+  A->>D: Salva chamado e historico
+  A->>R: Publica ticket_created
   A-->>F: Retorna chamado criado
-  R-->>W: Entrega mensagem da fila
-  W->>W: Registra notificacao simulada no log
+  R-->>W: Entrega evento
+  W->>W: Registra notificacao
 ```
 
 ## Fluxo de atendimento tecnico
@@ -63,14 +60,13 @@ sequenceDiagram
   participant R as RabbitMQ
   participant W as Worker
 
-  T->>F: Assume, responde ou altera status
+  T->>F: Atende chamado
   F->>A: POST/PATCH em /api/tickets/:id
   A->>D: Atualiza chamado e historico
-  D-->>A: Retorna atualizacao
-  A->>R: Publica evento ticket_assigned, message_added ou status_changed
-  A-->>F: Retorna chamado/evento atualizado
-  R-->>W: Entrega evento ao worker
-  W->>W: Registra notificacao simulada no log
+  A->>R: Publica evento do chamado
+  A-->>F: Retorna atualizacao
+  R-->>W: Entrega evento
+  W->>W: Registra notificacao
 ```
 
 ## Componentes e responsabilidades
@@ -86,22 +82,15 @@ sequenceDiagram
 | GitHub Actions | CI | Rodar testes, migrations, cobertura, build e SonarCloud |
 | SonarCloud | Qualidade | Analise estatica e quality gate |
 
-## Containerizacao
+## Execucao com Docker Compose
 
-```mermaid
-flowchart TB
-  compose["docker-compose.yml"]
-  compose --> db["db\nPostgreSQL\nporta host 5433"]
-  compose --> rabbit["rabbitmq\nAMQP 5672\npainel 15672"]
-  compose --> backend["backend\nAPI 3001"]
-  compose --> worker["worker\nconsumidor RabbitMQ"]
-  compose --> frontend["frontend\nNginx 5173"]
-
-  backend --> db
-  backend --> rabbit
-  worker --> rabbit
-  frontend --> backend
-```
+| Servico | Funcao | Porta no host |
+| --- | --- | --- |
+| `frontend` | Serve a interface React com Nginx | `5173` |
+| `backend` | Executa a API REST | `3001` |
+| `db` | Banco PostgreSQL | `5433` |
+| `rabbitmq` | Broker de mensagens e painel web | `5672`, `15672` |
+| `worker` | Consome eventos do RabbitMQ | Sem porta publica |
 
 ## Decisoes arquiteturais principais
 
