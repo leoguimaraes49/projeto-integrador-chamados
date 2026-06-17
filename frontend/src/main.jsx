@@ -2,17 +2,25 @@ import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   AlertTriangle,
+  CheckCircle2,
   ClipboardList,
   Headphones,
   LogIn,
+  MessageSquare,
   Plus,
   RefreshCw,
   Send,
+  UserCheck,
   UserPlus
 } from 'lucide-react';
 import './styles.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const EMPTY_AUTH_FORM = {
+  name: '',
+  email: '',
+  password: ''
+};
 const INITIAL_FORM = {
   title: '',
   description: '',
@@ -27,15 +35,24 @@ const STATUS_OPTIONS = [
   ['closed', 'Fechado'],
   ['canceled', 'Cancelado']
 ];
+const STATUS_LABELS = Object.fromEntries(STATUS_OPTIONS);
+const PRIORITY_LABELS = {
+  low: 'Baixa',
+  medium: 'Media',
+  high: 'Alta',
+  critical: 'Critica'
+};
+const EVENT_LABELS = {
+  ticket_created: 'Chamado criado',
+  ticket_assigned: 'Chamado assumido',
+  message_added: 'Mensagem adicionada',
+  status_changed: 'Status atualizado'
+};
 
 function App() {
   const [mode, setMode] = useStateFromStorage('authMode', 'login');
   const [auth, setAuth] = React.useState(null);
-  const [authForm, setAuthForm] = React.useState({
-    name: '',
-    email: '',
-    password: '123456'
-  });
+  const [authForm, setAuthForm] = React.useState(EMPTY_AUTH_FORM);
   const [ticketForm, setTicketForm] = React.useState(INITIAL_FORM);
   const [message, setMessage] = React.useState('');
   const [categories, setCategories] = React.useState([]);
@@ -54,6 +71,18 @@ function App() {
 
     loadWorkspaceData();
   }, [token]);
+
+  React.useEffect(() => {
+    if (status.type !== 'success' || !status.message) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setStatus({ type: 'idle', message: '' });
+    }, 4500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [status]);
 
   async function request(path, options = {}) {
     const response = await fetch(`${API_URL}${path}`, {
@@ -261,8 +290,12 @@ function App() {
         </header>
 
         {status.message && (
-          <div className={`status ${status.type}`} role="status">
-            <AlertTriangle size={18} aria-hidden="true" />
+          <div className={`status ${status.type}`} role="status" aria-live="polite">
+            {status.type === 'success' ? (
+              <CheckCircle2 size={18} aria-hidden="true" />
+            ) : (
+              <AlertTriangle size={18} aria-hidden="true" />
+            )}
             <span>{status.message}</span>
           </div>
         )}
@@ -281,8 +314,12 @@ function App() {
             }}
           />
         ) : (
-          <div className={`dashboard ${isTechnician ? 'technician-dashboard' : ''}`}>
-            <section className="panel">
+          <div
+            className={`dashboard ${
+              isTechnician ? 'technician-dashboard' : 'requester-dashboard'
+            }`}
+          >
+            <section className="panel" id={!isTechnician ? 'new-ticket-panel' : undefined}>
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">Usuario autenticado</p>
@@ -314,8 +351,27 @@ function App() {
                   <p className="eyebrow">Chamados</p>
                   <h2>{tickets.length} registrados</h2>
                 </div>
+                {!isTechnician && (
+                  <button
+                    className="icon-action mobile-priority-action"
+                    type="button"
+                    onClick={() =>
+                      document
+                        .getElementById('new-ticket-panel')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  >
+                    <Plus size={18} aria-hidden="true" />
+                    <span>Novo</span>
+                  </button>
+                )}
               </div>
-              <TicketList tickets={tickets} onSelect={showTicket} isTechnician={isTechnician} />
+              <TicketList
+                tickets={tickets}
+                onSelect={showTicket}
+                isTechnician={isTechnician}
+                selectedTicketId={selectedTicket?.id}
+              />
             </section>
 
             <section className="panel detail-panel">
@@ -360,7 +416,10 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
         <button
           className={mode === 'login' ? 'active' : ''}
           type="button"
-          onClick={() => setMode('login')}
+          onClick={() => {
+            setMode('login');
+            setForm({ ...EMPTY_AUTH_FORM, email: form.email });
+          }}
         >
           <LogIn size={18} aria-hidden="true" />
           Login
@@ -368,7 +427,10 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
         <button
           className={mode === 'register' ? 'active' : ''}
           type="button"
-          onClick={() => setMode('register')}
+          onClick={() => {
+            setMode('register');
+            setForm(EMPTY_AUTH_FORM);
+          }}
         >
           <UserPlus size={18} aria-hidden="true" />
           Cadastro
@@ -524,7 +586,7 @@ function TechnicianSummary({ tickets }) {
   );
 }
 
-function TicketList({ tickets, onSelect, isTechnician }) {
+function TicketList({ tickets, onSelect, isTechnician, selectedTicketId }) {
   if (!tickets.length) {
     return <p className="empty-state">Nenhum chamado encontrado.</p>;
   }
@@ -532,17 +594,25 @@ function TicketList({ tickets, onSelect, isTechnician }) {
   return (
     <div className="ticket-list">
       {tickets.map((ticket) => (
-        <button key={ticket.id} className="ticket-row" type="button" onClick={() => onSelect(ticket.id)}>
+        <button
+          key={ticket.id}
+          className={`ticket-row ${ticket.id === selectedTicketId ? 'selected' : ''}`}
+          type="button"
+          aria-pressed={ticket.id === selectedTicketId}
+          onClick={() => onSelect(ticket.id)}
+        >
           <span>
             <strong>{ticket.title}</strong>
             <small>
-              {ticket.category.name} - {ticket.priority}
+              {ticket.category.name}
               {isTechnician ? ` - ${ticket.requester.name}` : ''}
             </small>
           </span>
           <span className="ticket-meta">
-            <span className={`badge priority-${ticket.priority}`}>{ticket.priority}</span>
-            <span className={`badge ${ticket.status}`}>{ticket.status}</span>
+            <span className={`badge priority-${ticket.priority}`}>
+              {formatPriority(ticket.priority)}
+            </span>
+            <span className={`badge ${ticket.status}`}>{formatStatus(ticket.status)}</span>
           </span>
         </button>
       ))}
@@ -569,11 +639,11 @@ function TicketDetail({
       <dl>
         <div>
           <dt>Status</dt>
-          <dd>{ticket.status}</dd>
+          <dd>{formatStatus(ticket.status)}</dd>
         </div>
         <div>
           <dt>Prioridade</dt>
-          <dd>{ticket.priority}</dd>
+          <dd>{formatPriority(ticket.priority)}</dd>
         </div>
         <div>
           <dt>Categoria</dt>
@@ -585,9 +655,32 @@ function TicketDetail({
         <div className="technician-actions">
           {!ticket.technician && (
             <button className="primary-action" type="button" onClick={onAssign} disabled={isLoading}>
+              <UserCheck size={18} aria-hidden="true" />
               Assumir chamado
             </button>
           )}
+          <div className="action-strip" aria-label="Acoes rapidas de status">
+            {ticket.status !== 'in_progress' && (
+              <button
+                className="secondary-action"
+                type="button"
+                onClick={() => onStatusChange('in_progress')}
+                disabled={isLoading}
+              >
+                Em atendimento
+              </button>
+            )}
+            {ticket.status !== 'resolved' && (
+              <button
+                className="primary-action"
+                type="button"
+                onClick={() => onStatusChange('resolved')}
+                disabled={isLoading}
+              >
+                Resolver
+              </button>
+            )}
+          </div>
           <label>
             Status
             <select
@@ -622,13 +715,42 @@ function TicketDetail({
       <div className="timeline">
         {ticket.events?.map((event) => (
           <article key={event.id}>
-            <Send size={16} aria-hidden="true" />
-            <span>{event.message}</span>
+            <MessageSquare size={16} aria-hidden="true" />
+            <div>
+              <strong>{formatEventType(event.type)}</strong>
+              <span>{event.message}</span>
+              <small>
+                {event.author?.name ?? 'Sistema'} - {formatDate(event.createdAt)}
+              </small>
+            </div>
           </article>
         ))}
       </div>
     </div>
   );
+}
+
+function formatStatus(status) {
+  return STATUS_LABELS[status] ?? status;
+}
+
+function formatPriority(priority) {
+  return PRIORITY_LABELS[priority] ?? priority;
+}
+
+function formatEventType(type) {
+  return EVENT_LABELS[type] ?? type;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return 'sem data';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }).format(new Date(value));
 }
 
 function useStateFromStorage(key, initialValue) {

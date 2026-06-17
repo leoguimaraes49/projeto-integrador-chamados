@@ -8,6 +8,7 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { CategoryRepository } from './repositories/categoryRepository.js';
 import { TicketRepository } from './repositories/ticketRepository.js';
 import { UserRepository } from './repositories/userRepository.js';
+import { TicketEventPublisher } from './queues/ticketEventPublisher.js';
 import { authRoutes } from './routes/authRoutes.js';
 import { categoryRoutes } from './routes/categoryRoutes.js';
 import { ticketRoutes } from './routes/ticketRoutes.js';
@@ -67,6 +68,10 @@ function buildContainer() {
   return {
     authService: new AuthService(userRepository),
     categoryRepository,
-    ticketService: new TicketService(ticketRepository, categoryRepository)
+    ticketService: new TicketService(
+      ticketRepository,
+      categoryRepository,
+      new TicketEventPublisher()
+    )
   };
 }

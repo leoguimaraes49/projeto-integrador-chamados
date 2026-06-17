@@ -8,9 +8,13 @@
     "install:frontend": "npm --prefix frontend install",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
+    "worker:notifications": "npm --prefix backend run worker:notifications",
     "build:frontend": "npm --prefix frontend run build",
     "seed:demo": "npm --prefix backend run seed:demo",
     "test": "npm --prefix backend test",
-    "coverage": "npm --prefix backend run coverage"
+    "coverage": "npm --prefix backend run coverage",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
   }
 }

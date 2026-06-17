@@ -28,10 +28,12 @@ O projeto consiste no desenvolvimento de um sistema web para gerenciamento de ch
 - Backend: Node.js com Express
 - Banco de dados: PostgreSQL
 - Autenticação: JWT
+- Mensageria: RabbitMQ
 - Testes: Vitest
 - Qualidade/CI: GitHub Actions e SonarCloud
+- Containerizacao: Docker e Docker Compose
 
-Observação: Docker, Docker Compose, RabbitMQ e deploy ficam fora da Sprint 2 e serão tratados em sprints posteriores.
+Observacao: deploy externo nao faz parte do MVP atual.
 
 ## Entrega 1
 
@@ -102,6 +104,10 @@ frontend/   Protótipo React + Vite
 docs/       Documentação do projeto, requests de teste e materiais das sprints
 ```
 
+## Arquitetura
+
+- [Diagrama de Arquitetura](docs/arquitetura/diagrama-arquitetura.md)
+
 ## Como rodar localmente
 
 Instalar dependências:
@@ -143,4 +149,74 @@ Rodar build do frontend:
 ```bash
 npm run build:frontend
 ```
+
+## Como rodar com Docker
+
+Pre-requisitos:
+
+- Docker Desktop instalado e em execucao.
+- Portas `3001`, `5173`, `5433`, `5672` e `15672` livres.
+
+Subir banco, RabbitMQ, backend, worker e frontend:
+
+```bash
+npm run docker:up
+```
+
+O Docker Compose executa automaticamente:
+
+- PostgreSQL com banco `chamados`.
+- RabbitMQ para eventos de chamados.
+- Worker de notificacoes consumindo a fila `ticket.notifications`.
+- Migrations do backend.
+- Seed com usuarios de demonstracao.
+- API em `http://localhost:3001`.
+- Frontend em `http://localhost:5173`.
+- Painel RabbitMQ em `http://localhost:15672`.
+
+Credenciais de demonstracao:
+
+```text
+Usuario: usuario.demo@example.com / 123456
+Tecnico: tecnico.demo@example.com / 123456
+```
+
+Parar os containers:
+
+```bash
+npm run docker:down
+```
+
+Ver logs:
+
+```bash
+npm run docker:logs
+```
+
+Conexao ao banco pelo computador host:
+
+```text
+Host: localhost
+Porta: 5433
+Banco: chamados
+Usuario: postgres
+Senha: postgres
+```
+
+Painel RabbitMQ:
+
+```text
+URL: http://localhost:15672
+Usuario: guest
+Senha: guest
+Exchange: ticket.events
+Fila: ticket.notifications
+```
+
+Demonstracao da mensageria:
+
+1. Suba o ambiente com `npm run docker:up`.
+2. Entre no frontend e crie um chamado.
+3. Veja os logs do worker com `docker compose logs -f worker`.
+4. A cada chamado, resposta ou mudanca de status, o backend publica um evento e o worker registra uma notificacao simulada.
 

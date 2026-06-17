@@ -24,7 +24,7 @@ const technician = {
 
 describe('TicketService', () => {
   it('cria chamado aberto com evento inicial no historico', async () => {
-    const { service } = buildService();
+    const { service, ticketEventPublisher } = buildService();
 
     const ticket = await service.createTicket(requester, {
       title: 'Computador nao liga',
@@ -37,6 +37,15 @@ describe('TicketService', () => {
     expect(ticket.requester.id).toBe(requester.id);
     expect(ticket.events).toHaveLength(1);
     expect(ticket.events[0].type).toBe('ticket_created');
+    expect(ticketEventPublisher.publishedEvents).toHaveLength(1);
+    expect(ticketEventPublisher.publishedEvents[0]).toMatchObject({
+      type: 'ticket_created',
+      payload: {
+        ticketId: ticket.id,
+        requesterId: requester.id,
+        status: 'open'
+      }
+    });
   });
 
   it('bloqueia usuario comum ao tentar ler chamado de outra pessoa', async () => {
@@ -55,7 +64,7 @@ describe('TicketService', () => {
   });
 
   it('permite que tecnico assuma chamado', async () => {
-    const { service } = buildService();
+    const { service, ticketEventPublisher } = buildService();
 
     const ticket = await service.createTicket(requester, {
       title: 'Sem internet',
@@ -68,6 +77,36 @@ describe('TicketService', () => {
 
     expect(assigned.status).toBe('in_progress');
     expect(assigned.technician_id).toBe(technician.id);
+    expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
+      type: 'ticket_assigned',
+      payload: {
+        ticketId: ticket.id,
+        technicianId: technician.id,
+        status: 'in_progress'
+      }
+    });
+  });
+
+  it('publica evento quando mensagem e adicionada ao chamado', async () => {
+    const { service, ticketEventPublisher } = buildService();
+
+    const ticket = await service.createTicket(requester, {
+      title: 'Atualizar pacote',
+      description: 'Solicito atualizacao do editor.',
+      categoryId: 'cat-software',
+      priority: 'low'
+    });
+
+    await service.addMessage(requester, ticket.id, 'Inclui mais detalhes.');
+
+    expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
+      type: 'message_added',
+      payload: {
+        ticketId: ticket.id,
+        authorId: requester.id,
+        message: 'Inclui mais detalhes.'
+      }
+    });
   });
 
   it('impede usuario comum de alterar status', async () => {
@@ -84,16 +123,55 @@ describe('TicketService', () => {
       service.updateStatus(requester, ticket.id, 'resolved')
     ).rejects.toMatchObject({ statusCode: 403 });
   });
+
+  it('publica evento quando tecnico altera status do chamado', async () => {
+    const { service, ticketEventPublisher } = buildService();
+
+    const ticket = await service.createTicket(requester, {
+      title: 'Fechar chamado',
+      description: 'Chamado pronto para resolucao.',
+      categoryId: 'cat-software',
+      priority: 'medium'
+    });
+
+    const updated = await service.updateStatus(technician, ticket.id, 'resolved');
+
+    expect(updated.status).toBe('resolved');
+    expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
+      type: 'status_changed',
+      payload: {
+        ticketId: ticket.id,
+        authorId: technician.id,
+        previousStatus: 'open',
+        status: 'resolved'
+      }
+    });
+  });
 });
 
 function buildService() {
   const ticketRepository = new InMemoryTicketRepository();
   const categoryRepository = new InMemoryCategoryRepository();
+  const ticketEventPublisher = new InMemoryTicketEventPublisher();
 
   return {
-    service: new TicketService(ticketRepository, categoryRepository),
-    ticketRepository
+    service: new TicketService(
+      ticketRepository,
+      categoryRepository,
+      ticketEventPublisher
+    ),
+    ticketRepository,
+    ticketEventPublisher
   };
+}
+
+class InMemoryTicketEventPublisher {
+  publishedEvents = [];
+
+  async publish(type, payload) {
+    this.publishedEvents.push({ type, payload });
+    return true;
+  }
 }
 
 class InMemoryCategoryRepository {
