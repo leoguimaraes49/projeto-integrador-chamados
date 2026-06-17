@@ -4,7 +4,11 @@ export default defineConfig({
   test: {
     coverage: {
       provider: 'v8',
-      include: ['src/services/**/*.js', 'src/utils/**/*.js'],
+      include: [
+        'src/services/**/*.js',
+        'src/queues/ticketEventPublisher.js',
+        'src/utils/**/*.js'
+      ],
       reporter: ['text', 'lcov'],
       thresholds: {
         statements: 70,

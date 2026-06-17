@@ -123,6 +123,30 @@ describe('TicketService', () => {
       service.updateStatus(requester, ticket.id, 'resolved')
     ).rejects.toMatchObject({ statusCode: 403 });
   });
+
+  it('publica evento quando tecnico altera status do chamado', async () => {
+    const { service, ticketEventPublisher } = buildService();
+
+    const ticket = await service.createTicket(requester, {
+      title: 'Fechar chamado',
+      description: 'Chamado pronto para resolucao.',
+      categoryId: 'cat-software',
+      priority: 'medium'
+    });
+
+    const updated = await service.updateStatus(technician, ticket.id, 'resolved');
+
+    expect(updated.status).toBe('resolved');
+    expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
+      type: 'status_changed',
+      payload: {
+        ticketId: ticket.id,
+        authorId: technician.id,
+        previousStatus: 'open',
+        status: 'resolved'
+      }
+    });
+  });
 });
 
 function buildService() {
