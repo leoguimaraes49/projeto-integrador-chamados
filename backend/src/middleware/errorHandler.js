@@ -1,4 +1,5 @@
 import { AppError } from '../utils/appError.js';
+import { logger } from '../utils/logger.js';
 
 export function notFound(_req, _res, next) {
   next(new AppError('Rota nao encontrada.', 404, 'ROUTE_NOT_FOUND'));
@@ -9,7 +10,11 @@ export function errorHandler(error, _req, res, _next) {
   const code = error.code ?? 'INTERNAL_ERROR';
 
   if (statusCode >= 500) {
-    console.error(error);
+    logger.error('request_failed', {
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack
+    });
   }
 
   res.status(statusCode).json({
@@ -22,4 +27,3 @@ export function errorHandler(error, _req, res, _next) {
     }
   });
 }
-

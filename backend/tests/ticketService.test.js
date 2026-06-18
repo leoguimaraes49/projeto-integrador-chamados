@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TicketService } from '../src/services/ticketService.js';
+import { logger } from '../src/utils/logger.js';
 
 const requester = {
   id: 'user-1',
@@ -146,6 +147,36 @@ describe('TicketService', () => {
         status: 'resolved'
       }
     });
+  });
+
+  it('mantem a operacao quando a publicacao do evento falha', async () => {
+    const ticketRepository = new InMemoryTicketRepository();
+    const categoryRepository = new InMemoryCategoryRepository();
+    const ticketEventPublisher = {
+      publish: vi.fn().mockRejectedValue(new Error('RabbitMQ indisponivel'))
+    };
+    const logSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+    const service = new TicketService(
+      ticketRepository,
+      categoryRepository,
+      ticketEventPublisher
+    );
+
+    const ticket = await service.createTicket(requester, {
+      title: 'Falha temporaria de notificacao',
+      description: 'O chamado deve ser salvo mesmo sem mensageria.',
+      categoryId: 'cat-software',
+      priority: 'medium'
+    });
+
+    expect(ticket.status).toBe('open');
+    expect(logSpy).toHaveBeenCalledWith('ticket_event_publish_failed', {
+      eventType: 'ticket_created',
+      ticketId: ticket.id,
+      errorMessage: 'RabbitMQ indisponivel'
+    });
+
+    logSpy.mockRestore();
   });
 });
 

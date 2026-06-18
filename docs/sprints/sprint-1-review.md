@@ -30,11 +30,15 @@ Entregar a base tecnica do sistema de chamados, permitindo que o grupo evolua os
 
 ## Feedback recebido
 
-Preencher apos a apresentacao da Sprint 1.
+- A base por endpoints permitiu demonstrar valor antes da interface estar pronta.
+- A evolucao seguinte deveria priorizar interface, qualidade automatizada e seguranca.
+- O processo precisava manter evidencias de review, retrospectiva e planejamento no repositorio.
 
 ## Ajustes para a Sprint 2
 
-Preencher apos feedback do professor e da turma.
+- Criar o prototipo React para os fluxos principais.
+- Integrar migrations, cobertura, CI e SonarCloud.
+- Revisar autenticacao, autorizacao e seguranca da API.
 
 ## Objetivo explicado para a review
 

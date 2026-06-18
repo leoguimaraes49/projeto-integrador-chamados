@@ -1,5 +1,6 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import PropTypes from 'prop-types';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -63,6 +64,8 @@ function App() {
 
   const token = auth?.token;
   const isTechnician = ['technician', 'admin'].includes(auth?.user?.role);
+  const isRequester = !isTechnician;
+  const isLoggedOut = auth === null;
 
   React.useEffect(() => {
     if (!token) {
@@ -70,6 +73,8 @@ function App() {
     }
 
     loadWorkspaceData();
+    // The request helper already captures the current token.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   React.useEffect(() => {
@@ -77,11 +82,11 @@ function App() {
       return undefined;
     }
 
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = globalThis.setTimeout(() => {
       setStatus({ type: 'idle', message: '' });
     }, 4500);
 
-    return () => window.clearTimeout(timeoutId);
+    return () => globalThis.clearTimeout(timeoutId);
   }, [status]);
 
   async function request(path, options = {}) {
@@ -300,7 +305,7 @@ function App() {
           </div>
         )}
 
-        {!auth ? (
+        {isLoggedOut ? (
           <AuthPanel
             mode={mode}
             setMode={setMode}
@@ -319,7 +324,7 @@ function App() {
               isTechnician ? 'technician-dashboard' : 'requester-dashboard'
             }`}
           >
-            <section className="panel" id={!isTechnician ? 'new-ticket-panel' : undefined}>
+            <section className="panel" id={isRequester ? 'new-ticket-panel' : undefined}>
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">Usuario autenticado</p>
@@ -351,7 +356,7 @@ function App() {
                   <p className="eyebrow">Chamados</p>
                   <h2>{tickets.length} registrados</h2>
                 </div>
-                {!isTechnician && (
+                {isRequester && (
                   <button
                     className="icon-action mobile-priority-action"
                     type="button"
@@ -469,7 +474,7 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
       <form className="form-grid" onSubmit={onSubmit}>
         {mode === 'register' && (
           <label>
-            Nome
+            <span>Nome</span>
             <input
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -478,7 +483,7 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
           </label>
         )}
         <label>
-          E-mail
+          <span>E-mail</span>
           <input
             type="email"
             value={form.email}
@@ -487,7 +492,7 @@ function AuthPanel({ mode, setMode, form, setForm, onSubmit, isLoading, fillCred
           />
         </label>
         <label>
-          Senha
+          <span>Senha</span>
           <input
             type="password"
             value={form.password}
@@ -509,7 +514,7 @@ function TicketForm({ categories, form, setForm, onSubmit, isLoading }) {
   return (
     <form className="form-grid" onSubmit={onSubmit}>
       <label>
-        Titulo
+        <span>Titulo</span>
         <input
           value={form.title}
           onChange={(event) => setForm({ ...form, title: event.target.value })}
@@ -517,7 +522,7 @@ function TicketForm({ categories, form, setForm, onSubmit, isLoading }) {
         />
       </label>
       <label>
-        Descricao
+        <span>Descricao</span>
         <textarea
           value={form.description}
           onChange={(event) => setForm({ ...form, description: event.target.value })}
@@ -527,7 +532,7 @@ function TicketForm({ categories, form, setForm, onSubmit, isLoading }) {
       </label>
       <div className="form-row">
         <label>
-          Categoria
+          <span>Categoria</span>
           <select
             value={form.categoryId}
             onChange={(event) => setForm({ ...form, categoryId: event.target.value })}
@@ -541,7 +546,7 @@ function TicketForm({ categories, form, setForm, onSubmit, isLoading }) {
           </select>
         </label>
         <label>
-          Prioridade
+          <span>Prioridade</span>
           <select
             value={form.priority}
             onChange={(event) => setForm({ ...form, priority: event.target.value })}
@@ -682,7 +687,7 @@ function TicketDetail({
             )}
           </div>
           <label>
-            Status
+            <span>Status</span>
             <select
               value={ticket.status}
               onChange={(event) => onStatusChange(event.target.value)}
@@ -697,7 +702,7 @@ function TicketDetail({
           </label>
           <form className="message-form" onSubmit={onSendMessage}>
             <label>
-              Resposta ao solicitante
+              <span>Resposta ao solicitante</span>
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
@@ -730,6 +735,85 @@ function TicketDetail({
   );
 }
 
+const categoryShape = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired
+});
+
+const personShape = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired
+});
+
+const eventShape = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  message: PropTypes.string,
+  author: personShape,
+  createdAt: PropTypes.string.isRequired
+});
+
+const ticketShape = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  priority: PropTypes.string.isRequired,
+  status: PropTypes.string.isRequired,
+  category: categoryShape.isRequired,
+  requester: personShape.isRequired,
+  technician: personShape,
+  events: PropTypes.arrayOf(eventShape)
+});
+
+AuthPanel.propTypes = {
+  mode: PropTypes.oneOf(['login', 'register']).isRequired,
+  setMode: PropTypes.func.isRequired,
+  form: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired
+  }).isRequired,
+  setForm: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  fillCredentials: PropTypes.func.isRequired
+};
+
+TicketForm.propTypes = {
+  categories: PropTypes.arrayOf(categoryShape).isRequired,
+  form: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    categoryId: PropTypes.string.isRequired,
+    priority: PropTypes.string.isRequired
+  }).isRequired,
+  setForm: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired
+};
+
+TechnicianSummary.propTypes = {
+  tickets: PropTypes.arrayOf(ticketShape).isRequired
+};
+
+TicketList.propTypes = {
+  tickets: PropTypes.arrayOf(ticketShape).isRequired,
+  onSelect: PropTypes.func.isRequired,
+  isTechnician: PropTypes.bool.isRequired,
+  selectedTicketId: PropTypes.string
+};
+
+TicketDetail.propTypes = {
+  ticket: ticketShape,
+  isTechnician: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  message: PropTypes.string.isRequired,
+  setMessage: PropTypes.func.isRequired,
+  onAssign: PropTypes.func.isRequired,
+  onStatusChange: PropTypes.func.isRequired,
+  onSendMessage: PropTypes.func.isRequired
+};
+
 function formatStatus(status) {
   return STATUS_LABELS[status] ?? status;
 }
@@ -755,17 +839,17 @@ function formatDate(value) {
 
 function useStateFromStorage(key, initialValue) {
   const [value, setValue] = React.useState(() => {
-    const stored = window.localStorage.getItem(key);
+    const stored = globalThis.localStorage.getItem(key);
     return stored ? JSON.parse(stored) : initialValue;
   });
 
   React.useEffect(() => {
     if (value === null) {
-      window.localStorage.removeItem(key);
+      globalThis.localStorage.removeItem(key);
       return;
     }
 
-    window.localStorage.setItem(key, JSON.stringify(value));
+    globalThis.localStorage.setItem(key, JSON.stringify(value));
   }, [key, value]);
 
   return [value, setValue];

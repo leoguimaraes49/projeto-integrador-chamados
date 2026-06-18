@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pool } from './pool.js';
+import { logger } from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +48,7 @@ async function run() {
         [file]
       );
       await client.query('COMMIT');
-      console.log(`Migration aplicada: ${file}`);
+      logger.info('migration_applied', { filename: file });
     }
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
@@ -58,8 +59,12 @@ async function run() {
   }
 }
 
-run().catch((error) => {
-  console.error('Falha ao executar migrations:', error);
+try {
+  await run();
+} catch (error) {
+  logger.error('migration_failed', {
+    errorMessage: error.message,
+    stack: error.stack
+  });
   process.exit(1);
-});
-
+}

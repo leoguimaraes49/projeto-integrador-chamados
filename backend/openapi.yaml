@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: API do Sistema de Gerenciamento de Chamados
+  version: 1.0.0
+  description: API REST para cadastro, autenticacao e gerenciamento de chamados de suporte tecnico.
+servers:
+  - url: http://localhost:3001
+    description: Ambiente local
+tags:
+  - name: Sistema
+  - name: Autenticacao
+  - name: Categorias
+  - name: Chamados
+paths:
+  /health:
+    get:
+      tags: [Sistema]
+      summary: Verifica a disponibilidade da API
+      responses:
+        '200':
+          description: API disponivel
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, service]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: chamados-backend
+  /api/auth/register:
+    post:
+      tags: [Autenticacao]
+      summary: Cadastra um solicitante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Usuario cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: E-mail ja cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/auth/login:
+    post:
+      tags: [Autenticacao]
+      summary: Autentica um usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/auth/me:
+    get:
+      tags: [Autenticacao]
+      summary: Retorna o usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/categories:
+    get:
+      tags: [Categorias]
+      summary: Lista categorias ativas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Categorias ativas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [categories]
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/tickets:
+    get:
+      tags: [Chamados]
+      summary: Lista chamados conforme o perfil autenticado
+      description: Solicitantes recebem apenas os proprios chamados; tecnicos e administradores recebem a fila completa.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StatusFilter'
+        - $ref: '#/components/parameters/PriorityFilter'
+        - name: categoryId
+          in: query
+          description: Identificador da categoria
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de chamados
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tickets]
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Chamados]
+      summary: Abre um chamado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+      responses:
+        '201':
+          description: Chamado criado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ticket]
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/TicketDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/tickets/{id}:
+    get:
+      tags: [Chamados]
+      summary: Exibe os detalhes e o historico de um chamado
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Detalhes do chamado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ticket]
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/TicketDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/tickets/{id}/assign:
+    post:
+      tags: [Chamados]
+      summary: Atribui o chamado ao tecnico autenticado
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Chamado atribuido
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ticket]
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/tickets/{id}/messages:
+    post:
+      tags: [Chamados]
+      summary: Registra uma mensagem no historico
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+                  example: Reinicie o equipamento e confirme se o acesso voltou.
+      responses:
+        '201':
+          description: Mensagem registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event]
+                properties:
+                  event:
+                    $ref: '#/components/schemas/TicketEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/tickets/{id}/status:
+    patch:
+      tags: [Chamados]
+      summary: Atualiza o status de um chamado
+      description: Operacao permitida somente para tecnicos e administradores.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/TicketStatus'
+      responses:
+        '200':
+          description: Status atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ticket]
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/Ticket'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TicketId:
+      name: id
+      in: path
+      required: true
+      description: Identificador do chamado
+      schema:
+        type: string
+        format: uuid
+    StatusFilter:
+      name: status
+      in: query
+      schema:
+        $ref: '#/components/schemas/TicketStatus'
+    PriorityFilter:
+      name: priority
+      in: query
+      schema:
+        $ref: '#/components/schemas/TicketPriority'
+  responses:
+    BadRequest:
+      description: Dados invalidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Token ausente ou invalido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Perfil sem permissao para a operacao
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso nao encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: Limite de tentativas excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    User:
+      type: object
+      required: [id, name, email, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Usuario Demonstracao
+        email:
+          type: string
+          format: email
+          example: usuario.demo@example.com
+        role:
+          type: string
+          enum: [user, technician, admin]
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Maria Silva
+        email:
+          type: string
+          format: email
+          example: maria@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: '123456'
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: usuario.demo@example.com
+        password:
+          type: string
+          format: password
+          example: '123456'
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: Token JWT para o cabecalho Authorization
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Hardware
+    CreateTicketRequest:
+      type: object
+      required: [title, description, categoryId]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          example: Computador nao inicia
+        description:
+          type: string
+          minLength: 1
+          example: O equipamento nao apresenta imagem ao ligar.
+        categoryId:
+          type: string
+          format: uuid
+        priority:
+          $ref: '#/components/schemas/TicketPriority'
+    TicketPriority:
+      type: string
+      enum: [low, medium, high, critical]
+      default: medium
+    TicketStatus:
+      type: string
+      enum: [open, in_progress, waiting_user, resolved, closed, canceled]
+    PersonSummary:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    Ticket:
+      type: object
+      required: [id, title, description, priority, status, category, requester, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          $ref: '#/components/schemas/TicketPriority'
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        dueAt:
+          type: string
+          format: date-time
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        category:
+          $ref: '#/components/schemas/Category'
+        requester:
+          $ref: '#/components/schemas/PersonSummary'
+        technician:
+          allOf:
+            - $ref: '#/components/schemas/PersonSummary'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TicketDetail:
+      allOf:
+        - $ref: '#/components/schemas/Ticket'
+        - type: object
+          required: [events]
+          properties:
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/TicketEvent'
+    TicketEvent:
+      type: object
+      required: [id, ticketId, type, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticketId:
+          type: string
+          format: uuid
+        author:
+          allOf:
+            - $ref: '#/components/schemas/PersonSummary'
+          nullable: true
+        type:
+          type: string
+          enum: [ticket_created, ticket_assigned, message_added, status_changed]
+        message:
+          type: string
+          nullable: true
+        previousStatus:
+          allOf:
+            - $ref: '#/components/schemas/TicketStatus'
+          nullable: true
+        newStatus:
+          allOf:
+            - $ref: '#/components/schemas/TicketStatus'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: INVALID_CREDENTIALS
+            message:
+              type: string
+              example: Credenciais invalidas.

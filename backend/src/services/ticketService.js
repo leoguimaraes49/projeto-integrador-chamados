@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../utils/appError.js';
+import { logger } from '../utils/logger.js';
 
 const PRIORITIES = new Set(['low', 'medium', 'high', 'critical']);
 const STATUSES = new Set([
@@ -198,7 +199,11 @@ export class TicketService {
     try {
       await this.ticketEventPublisher.publish(type, payload);
     } catch (error) {
-      console.error('Falha ao publicar evento de chamado:', error.message);
+      logger.error('ticket_event_publish_failed', {
+        eventType: type,
+        ticketId: payload.ticketId,
+        errorMessage: error.message
+      });
     }
   }
 }

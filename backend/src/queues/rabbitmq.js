@@ -1,5 +1,6 @@
 import amqp from 'amqplib';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
 let connection = null;
 let channel = null;
@@ -35,7 +36,7 @@ export async function closeRabbitConnection() {
 async function connectRabbit() {
   connection = await amqp.connect(env.amqpUrl);
   connection.on('error', (error) => {
-    console.error('Erro na conexao com RabbitMQ:', error.message);
+    logger.error('rabbitmq_connection_error', { errorMessage: error.message });
   });
   connection.on('close', () => {
     channel = null;

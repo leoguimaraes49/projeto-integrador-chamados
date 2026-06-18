@@ -10,8 +10,8 @@ Review em aula: 23/04/2026, quinta-feira.
 | --- | --- | --- |
 | Estrutura de pastas coerente | Feito | `backend/`, `docs/`, `docs/sprints/`, `docs/api/` |
 | `.gitignore` configurado | Feito | `.gitignore` ignorando `node_modules`, `.env`, `dist`, `coverage` |
-| README inicial | Feito parcial | Falta preencher link real do GitHub Projects |
-| Branch protection | Pendente externo | Deve ser configurado no GitHub depois que o repositorio remoto existir |
+| README inicial | Feito | Objetivo, grupo, stack, execucao e link do GitHub Projects |
+| Branch protection | Feito | `main` exige pull request e uma aprovacao |
 
 ## 2. Produto - funcionalidades Sprint 1
 
@@ -33,10 +33,10 @@ Roteiro de teste: `docs/api/sprint-1-requests.http`.
 
 | Exigencia | Status | Observacao |
 | --- | --- | --- |
-| GitHub Projects com issues da Sprint 1 | Pendente externo | Criar board e cadastrar issues sugeridas. |
-| Todas as issues da Sprint 1 em Done | Pendente externo | So marcar Done quando cada membro terminar sua parte. |
-| Minimo 5 commits por integrante | Pendente externo | Cada membro precisa fazer commits proprios. |
-| Minimo 1 PR aprovado por colega por integrante | Pendente externo | Configurar branch protection e revisar PRs. |
+| GitHub Projects com issues da Sprint 1 | Feito | Issues e pull requests vinculados ao board. |
+| Issues tecnicas da Sprint 1 concluidas | Feito | Implementacao e testes incorporados nas sprints seguintes. |
+| Participacao individual | Acompanhamento externo | Conferida pelo historico de contribuicoes do GitHub. |
+| Revisoes de pull request | Feito | Branch protection exige aprovacao antes do merge. |
 
 ## 4. Testes
 

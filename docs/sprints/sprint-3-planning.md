@@ -30,3 +30,15 @@ Fechar o produto minimo entregavel, documentar a API e preparar a aplicacao para
 - PR aprovado por outro integrante.
 - CI passando.
 - Documentacao atualizada quando houver mudanca de uso ou arquitetura.
+
+## Acompanhamento final
+
+| Item | Resultado |
+| --- | --- |
+| SP3-01 | Fluxos do tecnico concluidos na interface |
+| SP3-02 | OpenAPI publicado em `/api-docs` |
+| SP3-03 | Dockerfiles e Docker Compose concluidos |
+| SP3-04 | README canonico revisado |
+| SP3-05 | Suite de servicos ampliada e cobertura acima de 70% |
+| SP3-07 | ESLint, SonarCloud e hardening de seguranca integrados |
+| SP3-08 | CD configurado para publicar imagens no GitHub Container Registry |

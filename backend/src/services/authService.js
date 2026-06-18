@@ -78,7 +78,19 @@ function normalizeEmail(email) {
 }
 
 function validateEmail(email) {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const parts = email.split('@');
+  const [localPart, domain] = parts;
+  const hasWhitespace = [...email].some((character) => character.trim() === '');
+  const hasValidDomain =
+    domain?.includes('.') && !domain.startsWith('.') && !domain.endsWith('.');
+
+  if (
+    email.length > 254 ||
+    parts.length !== 2 ||
+    !localPart ||
+    !hasValidDomain ||
+    hasWhitespace
+  ) {
     throw new AppError('E-mail invalido.', 400, 'INVALID_EMAIL');
   }
 }
