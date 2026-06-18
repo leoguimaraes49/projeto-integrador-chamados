@@ -2,6 +2,9 @@ import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { readFileSync } from 'node:fs';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yaml';
 import { env } from './config/env.js';
 import { pool } from './db/pool.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -15,6 +18,10 @@ import { ticketRoutes } from './routes/ticketRoutes.js';
 import { AuthService } from './services/authService.js';
 import { TicketService } from './services/ticketService.js';
 
+const openApiDocument = YAML.parse(
+  readFileSync(new URL('../openapi.yaml', import.meta.url), 'utf8')
+);
+
 export function createApp(container = buildContainer()) {
   const app = express();
 
@@ -27,6 +34,14 @@ export function createApp(container = buildContainer()) {
     })
   );
   app.use(express.json({ limit: '1mb' }));
+  app.get('/api-docs.json', (_req, res) => res.json(openApiDocument));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(openApiDocument, {
+      customSiteTitle: 'API do Sistema de Chamados'
+    })
+  );
   app.use(
     '/api/auth',
     rateLimit({
