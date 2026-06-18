@@ -70,6 +70,8 @@ function App() {
     }
 
     loadWorkspaceData();
+    // The request helper already captures the current token.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   React.useEffect(() => {

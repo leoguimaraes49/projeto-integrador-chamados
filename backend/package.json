@@ -9,6 +9,7 @@
     "migrate": "node src/db/migrate.js",
     "seed:demo": "node src/db/seedDemoUsers.js",
     "worker:notifications": "node src/workers/notificationWorker.js",
+    "lint": "eslint .",
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },
@@ -24,7 +25,10 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.4",
+    "globals": "^16.5.0",
     "vitest": "^3.2.4"
   }
 }
