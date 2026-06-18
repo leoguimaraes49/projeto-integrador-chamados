@@ -154,6 +154,27 @@ export class TicketService {
       message: normalizedMessage
     });
 
+    if (user.role === 'user' && ticket.status === 'waiting_user') {
+      await this.ticketRepository.updateStatus(ticketId, 'in_progress');
+      await this.ticketRepository.addEvent({
+        id: randomUUID(),
+        ticketId,
+        authorId: user.id,
+        type: 'status_changed',
+        message: 'Solicitante respondeu; chamado retornou ao atendimento.',
+        previousStatus: 'waiting_user',
+        newStatus: 'in_progress'
+      });
+
+      await this.publishTicketEvent('status_changed', {
+        ticketId,
+        authorId: user.id,
+        title: ticket.title,
+        previousStatus: 'waiting_user',
+        status: 'in_progress'
+      });
+    }
+
     return event;
   }
 

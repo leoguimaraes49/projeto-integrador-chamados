@@ -232,6 +232,7 @@ paths:
     post:
       tags: [Chamados]
       summary: Registra uma mensagem no historico
+      description: Quando o solicitante responde a um chamado aguardando usuario, o status retorna automaticamente para em atendimento.
       security:
         - bearerAuth: []
       parameters:

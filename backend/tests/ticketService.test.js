@@ -110,6 +110,38 @@ describe('TicketService', () => {
     });
   });
 
+  it('retoma o atendimento quando o solicitante responde', async () => {
+    const { service, ticketRepository, ticketEventPublisher } = buildService();
+    const ticket = await service.createTicket(requester, {
+      title: 'Confirmar acesso',
+      description: 'O tecnico precisa de uma confirmacao.',
+      categoryId: 'cat-access',
+      priority: 'medium'
+    });
+    await service.updateStatus(technician, ticket.id, 'waiting_user');
+
+    await service.addMessage(requester, ticket.id, 'O acesso voltou a funcionar.');
+
+    const updated = await ticketRepository.findById(ticket.id);
+    const events = await ticketRepository.listEvents(ticket.id);
+    expect(updated.status).toBe('in_progress');
+    expect(events.at(-1)).toMatchObject({
+      type: 'status_changed',
+      authorId: requester.id,
+      previousStatus: 'waiting_user',
+      newStatus: 'in_progress'
+    });
+    expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
+      type: 'status_changed',
+      payload: {
+        ticketId: ticket.id,
+        authorId: requester.id,
+        previousStatus: 'waiting_user',
+        status: 'in_progress'
+      }
+    });
+  });
+
   it('impede usuario comum de alterar status', async () => {
     const { service } = buildService();
 

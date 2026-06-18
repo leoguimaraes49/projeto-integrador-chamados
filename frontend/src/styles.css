@@ -555,7 +555,8 @@ textarea:focus-visible {
   margin: 0;
 }
 
-.technician-actions {
+.technician-actions,
+.requester-actions {
   background: #f8fbfb;
   border: 1px solid var(--line);
   border-radius: 8px;
