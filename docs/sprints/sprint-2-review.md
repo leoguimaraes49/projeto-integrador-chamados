@@ -24,10 +24,11 @@ Demonstrar a consolidacao da base tecnica criada na Sprint 1, com foco em segura
 8. Demonstrar abertura, listagem e detalhe de chamado como solicitante.
 9. Entrar como tecnico, assumir chamado, responder e alterar status.
 10. Mostrar o workflow de CI no repositorio.
-11. Mostrar o status do SonarCloud, se o token ja estiver configurado.
+11. Mostrar o Quality Gate e a cobertura no SonarCloud.
 
-## Pontos em andamento
+## Resultado da review
 
-- Validacao formal de usabilidade do prototipo.
-- Leitura final das metricas de qualidade no SonarCloud.
-- Fechamento da retrospectiva e do Sprint 3 Backlog.
+- Os fluxos de solicitante e tecnico ficaram demonstraveis pela interface.
+- A validacao de usabilidade foi registrada em `docs/05-validacao-usabilidade.md`.
+- O SonarCloud passou a analisar pull requests e a branch principal.
+- A retrospectiva foi concluida e o backlog de fechamento da Sprint 3 foi definido.

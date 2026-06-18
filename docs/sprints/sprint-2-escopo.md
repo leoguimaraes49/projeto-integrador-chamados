@@ -14,9 +14,9 @@ Consolidar a base da Sprint 1 com foco em seguranca, qualidade, versionamento de
 | SP2-04 | Criar prototipo inicial da interface em React | Implementado |
 | SP2-09 | Diferenciar interface de solicitante e tecnico | Implementado |
 | SP2-05 | Configurar CI com testes, migrations, build e cobertura | Implementado |
-| SP2-06 | Preparar configuracao para metricas de qualidade no SonarCloud | Implementado parcial |
-| SP2-07 | Validar usabilidade do prototipo com o grupo | Em andamento |
-| SP2-08 | Completar retrospectiva e planejamento da Sprint 3 | Em andamento |
+| SP2-06 | Preparar configuracao para metricas de qualidade no SonarCloud | Implementado |
+| SP2-07 | Validar usabilidade do prototipo com o grupo | Implementado |
+| SP2-08 | Completar retrospectiva e planejamento da Sprint 3 | Implementado |
 
 ## Fora do escopo desta sprint
 

@@ -19,4 +19,8 @@
 
 ## Observacoes da equipe
 
-Preencher com os aprendizados finais apos a Sprint 2 Review.
+- A separacao entre interface de solicitante e tecnico tornou a demonstracao mais clara.
+- Executar migrations no CI reduziu o risco de divergencia entre codigo e banco.
+- Os checks automaticos facilitaram a revisao dos pull requests.
+- A leitura do SonarCloud direcionou correcoes de seguranca, contraste e manutencao.
+- O fechamento da Sprint 2 definiu Docker, documentacao da API e entrega continua como prioridades da Sprint 3.

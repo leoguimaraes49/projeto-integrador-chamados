@@ -41,8 +41,8 @@ Itens sugeridos para inserir inicialmente:
 - PB-09 a PB-15 como candidatos da Sprint 2.
 - PB-16 a PB-20 como candidatos da Sprint 3 ou melhorias futuras.
 
-## Pendências externas
+## Registros externos concluidos
 
-- Criar o repositorio GitHub do grupo.
-- Criar o GitHub Project e cadastrar o backlog inicial.
-- Registrar a proposta no ambiente definido pelo professor.
+- Repositorio publico criado no GitHub.
+- GitHub Projects criado e vinculado ao README.
+- Proposta, backlog e documentacao inicial registrados no repositorio.
