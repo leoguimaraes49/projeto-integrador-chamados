@@ -1,9 +1,9 @@
 function write(level, event, details = {}) {
   const entry = {
+    ...details,
     timestamp: new Date().toISOString(),
     level,
-    event,
-    ...details
+    event
   };
   const output = JSON.stringify(entry);
 

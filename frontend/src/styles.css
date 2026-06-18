@@ -109,8 +109,8 @@ button {
 }
 
 .topbar .brand-mark {
-  background: rgb(255 255 255 / 12%);
-  border-color: rgb(255 255 255 / 22%);
+  background: #123d42;
+  border-color: #6ba39f;
   color: #fff;
 }
 
@@ -555,7 +555,8 @@ textarea:focus-visible {
   margin: 0;
 }
 
-.technician-actions {
+.technician-actions,
+.requester-actions {
   background: #f8fbfb;
   border: 1px solid var(--line);
   border-radius: 8px;

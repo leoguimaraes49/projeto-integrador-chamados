@@ -243,6 +243,7 @@ function App() {
         body: JSON.stringify({ message })
       });
       setMessage('');
+      await loadWorkspaceData();
       await showTicket(selectedTicket.id);
       setStatus({ type: 'success', message: 'Resposta registrada no historico.' });
     } catch (error) {
@@ -266,8 +267,18 @@ function App() {
 
   function logout() {
     setAuth(null);
+    setAuthForm(EMPTY_AUTH_FORM);
+    setTicketForm(INITIAL_FORM);
+    setMessage('');
+    setCategories([]);
     setTickets([]);
     setSelectedTicket(null);
+    setMode('login');
+    setStatus({ type: 'idle', message: '' });
+  }
+
+  function changeAuthMode(nextMode) {
+    setMode(nextMode);
     setStatus({ type: 'idle', message: '' });
   }
 
@@ -308,13 +319,13 @@ function App() {
         {isLoggedOut ? (
           <AuthPanel
             mode={mode}
-            setMode={setMode}
+            setMode={changeAuthMode}
             form={authForm}
             setForm={setAuthForm}
             onSubmit={handleAuth}
             isLoading={isLoading}
             fillCredentials={(credentials) => {
-              setMode('login');
+              changeAuthMode('login');
               setAuthForm({ name: '', ...credentials });
             }}
           />
@@ -354,7 +365,9 @@ function App() {
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">Chamados</p>
-                  <h2>{tickets.length} registrados</h2>
+                  <h2>
+                    {tickets.length} {tickets.length === 1 ? 'registrado' : 'registrados'}
+                  </h2>
                 </div>
                 {isRequester && (
                   <button
@@ -656,53 +669,57 @@ function TicketDetail({
         </div>
       </dl>
       <p>{ticket.description}</p>
-      {isTechnician && (
-        <div className="technician-actions">
-          {!ticket.technician && (
-            <button className="primary-action" type="button" onClick={onAssign} disabled={isLoading}>
-              <UserCheck size={18} aria-hidden="true" />
-              Assumir chamado
-            </button>
+      {(isTechnician || ticket.status === 'waiting_user') && (
+        <div className={isTechnician ? 'technician-actions' : 'requester-actions'}>
+          {isTechnician && (
+            <>
+              {!ticket.technician && (
+                <button className="primary-action" type="button" onClick={onAssign} disabled={isLoading}>
+                  <UserCheck size={18} aria-hidden="true" />
+                  Assumir chamado
+                </button>
+              )}
+              <div className="action-strip" aria-label="Acoes rapidas de status">
+                {ticket.status !== 'in_progress' && (
+                  <button
+                    className="secondary-action"
+                    type="button"
+                    onClick={() => onStatusChange('in_progress')}
+                    disabled={isLoading}
+                  >
+                    Em atendimento
+                  </button>
+                )}
+                {ticket.status !== 'resolved' && (
+                  <button
+                    className="primary-action"
+                    type="button"
+                    onClick={() => onStatusChange('resolved')}
+                    disabled={isLoading}
+                  >
+                    Resolver
+                  </button>
+                )}
+              </div>
+              <label>
+                <span>Status</span>
+                <select
+                  value={ticket.status}
+                  onChange={(event) => onStatusChange(event.target.value)}
+                  disabled={isLoading}
+                >
+                  {STATUS_OPTIONS.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
           )}
-          <div className="action-strip" aria-label="Acoes rapidas de status">
-            {ticket.status !== 'in_progress' && (
-              <button
-                className="secondary-action"
-                type="button"
-                onClick={() => onStatusChange('in_progress')}
-                disabled={isLoading}
-              >
-                Em atendimento
-              </button>
-            )}
-            {ticket.status !== 'resolved' && (
-              <button
-                className="primary-action"
-                type="button"
-                onClick={() => onStatusChange('resolved')}
-                disabled={isLoading}
-              >
-                Resolver
-              </button>
-            )}
-          </div>
-          <label>
-            <span>Status</span>
-            <select
-              value={ticket.status}
-              onChange={(event) => onStatusChange(event.target.value)}
-              disabled={isLoading}
-            >
-              {STATUS_OPTIONS.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
           <form className="message-form" onSubmit={onSendMessage}>
             <label>
-              <span>Resposta ao solicitante</span>
+              <span>{isTechnician ? 'Resposta ao solicitante' : 'Sua resposta'}</span>
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
