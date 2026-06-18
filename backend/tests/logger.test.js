@@ -22,4 +22,19 @@ describe('logger', () => {
       ticketId: 'ticket-1'
     });
   });
+
+  it('preserva os campos reservados do registro', () => {
+    const outputSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    logger.info('expected_event', {
+      timestamp: 'invalid',
+      level: 'error',
+      event: 'overridden_event'
+    });
+
+    const entry = JSON.parse(outputSpy.mock.calls[0][0]);
+    expect(entry.timestamp).not.toBe('invalid');
+    expect(entry.level).toBe('info');
+    expect(entry.event).toBe('expected_event');
+  });
 });
