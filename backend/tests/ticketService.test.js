@@ -158,7 +158,7 @@ describe('TicketService', () => {
   });
 
   it('publica evento quando tecnico altera status do chamado', async () => {
-    const { service, ticketEventPublisher } = buildService();
+    const { service, ticketRepository, ticketEventPublisher } = buildService();
 
     const ticket = await service.createTicket(requester, {
       title: 'Fechar chamado',
@@ -168,8 +168,10 @@ describe('TicketService', () => {
     });
 
     const updated = await service.updateStatus(technician, ticket.id, 'resolved');
+    const events = await ticketRepository.listEvents(ticket.id);
 
     expect(updated.status).toBe('resolved');
+    expect(events.at(-1).message).toBe('Status alterado para Resolvido.');
     expect(ticketEventPublisher.publishedEvents.at(-1)).toMatchObject({
       type: 'status_changed',
       payload: {

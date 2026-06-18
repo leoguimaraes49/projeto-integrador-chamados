@@ -3,14 +3,15 @@ import { AppError } from '../utils/appError.js';
 import { logger } from '../utils/logger.js';
 
 const PRIORITIES = new Set(['low', 'medium', 'high', 'critical']);
-const STATUSES = new Set([
-  'open',
-  'in_progress',
-  'waiting_user',
-  'resolved',
-  'closed',
-  'canceled'
-]);
+const STATUS_LABELS = {
+  open: 'Aberto',
+  in_progress: 'Em atendimento',
+  waiting_user: 'Aguardando usuario',
+  resolved: 'Resolvido',
+  closed: 'Fechado',
+  canceled: 'Cancelado'
+};
+const STATUSES = new Set(Object.keys(STATUS_LABELS));
 
 export class TicketService {
   constructor(ticketRepository, categoryRepository, ticketEventPublisher = null) {
@@ -196,7 +197,7 @@ export class TicketService {
       ticketId,
       authorId: user.id,
       type: 'status_changed',
-      message: `Status alterado para ${status}.`,
+      message: `Status alterado para ${STATUS_LABELS[status]}.`,
       previousStatus: current.status,
       newStatus: status
     });

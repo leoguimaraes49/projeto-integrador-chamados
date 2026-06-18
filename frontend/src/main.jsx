@@ -267,8 +267,18 @@ function App() {
 
   function logout() {
     setAuth(null);
+    setAuthForm(EMPTY_AUTH_FORM);
+    setTicketForm(INITIAL_FORM);
+    setMessage('');
+    setCategories([]);
     setTickets([]);
     setSelectedTicket(null);
+    setMode('login');
+    setStatus({ type: 'idle', message: '' });
+  }
+
+  function changeAuthMode(nextMode) {
+    setMode(nextMode);
     setStatus({ type: 'idle', message: '' });
   }
 
@@ -309,13 +319,13 @@ function App() {
         {isLoggedOut ? (
           <AuthPanel
             mode={mode}
-            setMode={setMode}
+            setMode={changeAuthMode}
             form={authForm}
             setForm={setAuthForm}
             onSubmit={handleAuth}
             isLoading={isLoading}
             fillCredentials={(credentials) => {
-              setMode('login');
+              changeAuthMode('login');
               setAuthForm({ name: '', ...credentials });
             }}
           />
@@ -355,7 +365,9 @@ function App() {
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">Chamados</p>
-                  <h2>{tickets.length} registrados</h2>
+                  <h2>
+                    {tickets.length} {tickets.length === 1 ? 'registrado' : 'registrados'}
+                  </h2>
                 </div>
                 {isRequester && (
                   <button
