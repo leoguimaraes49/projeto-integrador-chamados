@@ -4,12 +4,14 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev
 
-COPY openapi.yaml ./
-COPY src ./src
+COPY --chown=node:node openapi.yaml ./
+COPY --chown=node:node src ./src
 
 EXPOSE 3001
+
+USER node
 
 CMD ["npm", "start"]

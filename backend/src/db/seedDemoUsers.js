@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { pool } from './pool.js';
+import { logger } from '../utils/logger.js';
 
 const demoUsers = [
   {
@@ -34,16 +35,17 @@ async function run() {
     );
   }
 
-  console.log('Usuarios de demonstracao atualizados.');
-  console.log('Usuario: usuario.demo@example.com / 123456');
-  console.log('Tecnico: tecnico.demo@example.com / 123456');
+  logger.info('demo_users_seeded', { count: demoUsers.length });
 }
 
-run()
-  .catch((error) => {
-    console.error('Falha ao criar usuarios de demonstracao:', error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await pool.end();
+try {
+  await run();
+} catch (error) {
+  logger.error('demo_users_seed_failed', {
+    errorMessage: error.message,
+    stack: error.stack
   });
+  process.exitCode = 1;
+} finally {
+  await pool.end();
+}

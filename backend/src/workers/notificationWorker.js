@@ -1,9 +1,10 @@
 import { env } from '../config/env.js';
 import { closeRabbitConnection, getRabbitChannel } from '../queues/rabbitmq.js';
+import { logger } from '../utils/logger.js';
 
 async function run() {
   if (!env.amqpUrl) {
-    console.log('Worker de notificacoes encerrado: AMQP_URL nao configurado.');
+    logger.warn('notification_worker_disabled', { reason: 'AMQP_URL ausente' });
     return;
   }
 
@@ -18,9 +19,9 @@ async function run() {
   );
   await channel.prefetch(5);
 
-  console.log(
-    `Worker de notificacoes aguardando eventos na fila ${env.rabbitmq.notificationQueue}.`
-  );
+  logger.info('notification_worker_started', {
+    queue: env.rabbitmq.notificationQueue
+  });
 
   await channel.consume(env.rabbitmq.notificationQueue, (message) => {
     if (!message) {
@@ -29,10 +30,12 @@ async function run() {
 
     try {
       const event = JSON.parse(message.content.toString('utf8'));
-      console.log(formatNotification(event));
+      logger.info('notification_processed', formatNotification(event));
       channel.ack(message);
     } catch (error) {
-      console.error('Falha ao processar mensagem RabbitMQ:', error.message);
+      logger.error('notification_processing_failed', {
+        errorMessage: error.message
+      });
       channel.nack(message, false, false);
     }
   });
@@ -49,9 +52,7 @@ async function waitForRabbitChannel() {
         throw error;
       }
 
-      console.log(
-        `RabbitMQ ainda nao aceitou conexao. Tentativa ${attempt}/${maxAttempts}.`
-      );
+      logger.warn('rabbitmq_connection_retry', { attempt, maxAttempts });
       await wait(5000);
     }
   }
@@ -65,9 +66,11 @@ function wait(milliseconds) {
 
 function formatNotification(event) {
   const payload = event.payload ?? {};
-  const title = payload.title ? ` - ${payload.title}` : '';
-
-  return `[notificacao] ${event.type}${title} (${payload.ticketId ?? 'sem ticketId'})`;
+  return {
+    eventType: event.type,
+    ticketId: payload.ticketId ?? null,
+    title: payload.title ?? null
+  };
 }
 
 process.on('SIGINT', shutdown);
@@ -78,7 +81,12 @@ async function shutdown() {
   process.exit(0);
 }
 
-run().catch((error) => {
-  console.error('Worker de notificacoes falhou:', error);
+try {
+  await run();
+} catch (error) {
+  logger.error('notification_worker_failed', {
+    errorMessage: error.message,
+    stack: error.stack
+  });
   process.exit(1);
-});
+}
